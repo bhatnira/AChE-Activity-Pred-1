@@ -13,7 +13,7 @@ streamlit-option-menu==0.3.13
 streamlit-ketcher==0.0.5
 
 # Chemistry and molecular analysis
-rdkit-pypi==2023.9.1
+rdkit>=2023.9.0
 
 # Machine Learning
 joblib==1.3.2

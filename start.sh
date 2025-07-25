@@ -2,46 +2,21 @@
 
 # Startup script for Molecular Prediction Suite Docker container
 
-echo "🚀 Starting Molecular Prediction Suite..."
+echo "Starting virtual display..."
+Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+export DISPLAY=:99
 
-# Check if all required model files exist
-echo "📋 Checking model files..."
+# Wait a moment for Xvfb to start
+sleep 2
 
-# Create data directory if it doesn't exist
-mkdir -p /app/data
+# Set the port (default to 8501 if not provided by Render)
+export PORT=${PORT:-8501}
 
-# Check for required pickle files
-if [ ! -f "best_model_aggregrate_circular.pkl" ]; then
-    echo "⚠️  Warning: best_model_aggregrate_circular.pkl not found"
-fi
+echo "Starting Streamlit app on port $PORT..."
 
-if [ ! -f "bestPipeline_tpot_circularfingerprint_classification.pkl" ]; then
-    echo "⚠️  Warning: bestPipeline_tpot_circularfingerprint_classification.pkl not found"
-fi
-
-if [ ! -f "bestPipeline_tpot_rdkit_classification.pkl" ]; then
-    echo "⚠️  Warning: bestPipeline_tpot_rdkit_classification.pkl not found"
-fi
-
-if [ ! -f "train_data.pkl" ]; then
-    echo "⚠️  Warning: train_data.pkl not found"
-fi
-
-# Check for checkpoint directory
-if [ ! -d "checkpoint-2000" ]; then
-    echo "⚠️  Warning: checkpoint-2000 directory not found"
-fi
-
-# Check for graph model directories
-if [ ! -d "GraphConv_model_files" ]; then
-    echo "⚠️  Warning: GraphConv_model_files directory not found"
-fi
-
-echo "🧬 Starting Streamlit app launcher..."
-
-# Start the application
+# Start Streamlit
 exec streamlit run app_launcher.py \
-    --server.port=8501 \
+    --server.port=$PORT \
     --server.address=0.0.0.0 \
     --server.headless=true \
     --browser.gatherUsageStats=false

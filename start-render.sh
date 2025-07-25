@@ -4,6 +4,11 @@
 
 echo "🚀 Starting Molecular Prediction Suite on Render..."
 
+# Start virtual display for RDKit
+echo "🖥️  Starting virtual display..."
+Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+export DISPLAY=:99
+
 # Set default PORT if not provided by Render
 export PORT=${PORT:-10000}
 
@@ -38,6 +43,11 @@ export STREAMLIT_SERVER_HEADLESS=true
 export STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
 export STREAMLIT_THEME_BASE=light
 export STREAMLIT_THEME_PRIMARY_COLOR="#007AFF"
+
+# Set environment variables for headless operation and RDKit compatibility
+export DISPLAY=:99
+export QT_QPA_PLATFORM=offscreen
+export MPLBACKEND=Agg
 
 echo "🧬 Starting Streamlit app on port $PORT..."
 

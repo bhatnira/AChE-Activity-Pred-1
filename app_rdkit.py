@@ -1,11 +1,69 @@
 import streamlit as st
 import pandas as pd
-from rdkit import Chem
-from rdkit.Chem import Descriptors
-import traceback
-import joblib
 import numpy as np
 import os
+import traceback
+
+# Set matplotlib backend for headless environment
+import matplotlib
+matplotlib.use('Agg')
+
+# Set environment variables to prevent X11 issues
+os.environ['DISPLAY'] = ':99'
+os.environ['MPLBACKEND'] = 'Agg'
+os.environ['QT_QPA_PLATFORM'] = 'offscreen'
+
+# Import RDKit with comprehensive error handling
+try:
+    # Try to import RDKit components
+    from rdkit import Chem
+    from rdkit.Chem import Descriptors
+    from rdkit.Chem import rdMolDescriptors
+    from rdkit import rdBase
+    
+    # Suppress RDKit warnings
+    rdBase.DisableLog('rdApp.error')
+    rdBase.DisableLog('rdApp.warning')
+    
+    RDKIT_AVAILABLE = True
+    print("✅ RDKit imported successfully")
+    
+except ImportError as e:
+    st.error(f"❌ RDKit import failed: {str(e)}")
+    st.error("RDKit is not available. Please check system dependencies.")
+    RDKIT_AVAILABLE = False
+    
+    # Create dummy classes to prevent crashes
+    class Chem:
+        @staticmethod
+        def MolFromSmiles(*args, **kwargs):
+            return None
+            
+    class Descriptors:
+        @staticmethod
+        def MolWt(*args, **kwargs):
+            return 0.0
+        @staticmethod
+        def MolLogP(*args, **kwargs):
+            return 0.0
+            
+except Exception as e:
+    st.error(f"❌ Unexpected error importing RDKit: {str(e)}")
+    st.error(f"Error details: {traceback.format_exc()}")
+    RDKIT_AVAILABLE = False
+    
+    # Create dummy classes
+    class Chem:
+        @staticmethod
+        def MolFromSmiles(*args, **kwargs):
+            return None
+            
+    class Descriptors:
+        @staticmethod
+        def MolWt(*args, **kwargs):
+            return 0.0
+
+import joblib
 from lime import lime_tabular
 import streamlit.components.v1 as components
 

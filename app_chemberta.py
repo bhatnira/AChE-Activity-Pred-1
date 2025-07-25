@@ -5,7 +5,36 @@ from rdkit.Chem import Draw
 import traceback
 import numpy as np
 import os
-from simpletransformers.classification import ClassificationModel
+
+# Fix for transformers compatibility with simpletransformers
+try:
+    # Try importing simpletransformers first to see if it loads properly
+    from simpletransformers.classification import ClassificationModel
+except ImportError as e:
+    if "SequenceSummary" in str(e):
+        # If SequenceSummary is not available, create a compatibility fix
+        import torch.nn as nn
+        import transformers
+        
+        class SequenceSummary(nn.Module):
+            def __init__(self, config):
+                super().__init__()
+                self.summary = nn.Linear(config.hidden_size, config.num_labels if hasattr(config, 'num_labels') else 1)
+                
+            def forward(self, hidden_states, cls_index=None):
+                if cls_index is not None:
+                    return self.summary(hidden_states[cls_index])
+                return self.summary(hidden_states[:, 0])
+        
+        # Monkey patch it back to where simpletransformers expects it
+        if not hasattr(transformers.modeling_utils, 'SequenceSummary'):
+            transformers.modeling_utils.SequenceSummary = SequenceSummary
+        
+        # Now try importing again
+        from simpletransformers.classification import ClassificationModel
+    else:
+        raise e
+
 import streamlit.components.v1 as components
 from streamlit_ketcher import st_ketcher
 import torch
