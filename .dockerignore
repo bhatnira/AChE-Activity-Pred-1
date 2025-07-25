@@ -1,0 +1,67 @@
+# Git and version control
+.git
+.gitignore
+.gitattributes
+
+# Python cache and virtual environments
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+venv
+.venv
+.env
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.pytest_cache
+
+# Documentation and guides
+README.md
+*.md
+!RENDER_DEPLOYMENT.md
+
+# Docker files (keep only main Dockerfile)
+docker-compose*.yml
+Dockerfile.dev
+Dockerfile.render
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Development tools
+Makefile
+test-docker.sh
+start.sh
+
+# Logs and temporary files
+*.tmp
+*.bak
+logs/
+*.log
+
+# Local development files
+data/local/
+.local/

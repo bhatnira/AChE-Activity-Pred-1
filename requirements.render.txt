@@ -1,0 +1,38 @@
+# Production requirements optimized for Render.com
+# Core Streamlit and data processing
+streamlit==1.35.0
+pandas==2.1.4
+numpy==1.25.2
+scikit-learn==1.4.2
+matplotlib==3.8.2
+seaborn==0.13.0
+plotly==5.17.0
+
+# Streamlit extensions
+streamlit-option-menu==0.3.13
+streamlit-ketcher==0.0.5
+
+# Chemistry and molecular analysis
+rdkit-pypi==2023.9.1
+
+# Machine Learning
+joblib==1.3.2
+xgboost==2.0.3
+tpot==0.12.2
+
+# Deep Learning (CPU versions for faster builds)
+torch==2.1.2+cpu --find-links https://download.pytorch.org/whl/torch_stable.html
+tensorflow-cpu==2.15.0
+
+# Transformer models
+transformers==4.36.2
+simpletransformers==0.70.1
+
+# Additional utilities
+openpyxl==3.1.2
+scipy==1.11.4
+lime==0.2.0.1
+
+# Production optimizations
+gunicorn==21.2.0
+uvicorn[standard]==0.24.0
