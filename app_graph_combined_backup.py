@@ -180,26 +180,21 @@ def predict_fragment_dataset_regression(model, frag_dataset):
 # Function to visualize contributions
 def vis_contribs(mol, contribs, contrib_type, title="Contribution Map"):
     """
-    Visualize atomic contributions on molecular structure as similarity map
+    Visualize atomic contributions on molecular structure
     """
     try:
         import matplotlib.pyplot as plt
         import matplotlib
         matplotlib.use('Agg')  # Use non-interactive backend
         
-        print(f"DEBUG: Starting vis_contribs with mol={mol is not None}, contribs={len(contribs) if contribs is not None else None}")
-        
         if mol is None or contribs is None:
-            print("DEBUG: mol or contribs is None, returning None")
             return None
             
         if len(contribs) == 0:
-            print("DEBUG: contribs is empty, returning None")
             return None
             
         # Ensure we have the right number of contributions for atoms
         if len(contribs) != mol.GetNumAtoms():
-            print(f"DEBUG: Adjusting contribs length from {len(contribs)} to {mol.GetNumAtoms()}")
             # Pad or trim contributions to match number of atoms
             if len(contribs) > mol.GetNumAtoms():
                 contribs = contribs[:mol.GetNumAtoms()]
@@ -209,189 +204,49 @@ def vis_contribs(mol, contribs, contrib_type, title="Contribution Map"):
                 padded_contribs[:len(contribs)] = contribs
                 contribs = padded_contribs
         
-        # Method 1: Try custom RDKit similarity map with highlighting
+        # Try RDKit SimilarityMaps first
         try:
-            print("DEBUG: Attempting custom RDKit similarity map with highlighting...")
-            from rdkit.Chem.Draw import rdMolDraw2D
-            from PIL import Image
-            import io
-            
-            # Normalize contributions for color mapping
-            if np.max(np.abs(contribs)) > 0:
-                norm_contribs = contribs / np.max(np.abs(contribs))
-            else:
-                norm_contribs = contribs
-            
-            # Create atom colors based on contributions
-            atom_colors = {}
-            for i, contrib in enumerate(norm_contribs):
-                # Blue for positive (increases prediction), Red for negative (decreases prediction)
-                if contrib > 0:
-                    # Blue intensity based on contribution magnitude
-                    intensity = min(abs(contrib), 1.0)
-                    atom_colors[i] = (1-intensity, 1-intensity, 1.0)  # Light blue to blue
-                elif contrib < 0:
-                    # Red intensity based on contribution magnitude  
-                    intensity = min(abs(contrib), 1.0)
-                    atom_colors[i] = (1.0, 1-intensity, 1-intensity)  # Light red to red
-                else:
-                    # White for zero contribution
-                    atom_colors[i] = (1.0, 1.0, 1.0)
-            
-            # Create drawer
-            drawer = rdMolDraw2D.MolDraw2DCairo(400, 400)
-            
-            # Draw molecule with highlighted atoms
-            drawer.DrawMolecule(mol, 
-                              highlightAtoms=list(range(mol.GetNumAtoms())), 
-                              highlightAtomColors=atom_colors)
-            drawer.FinishDrawing()
-            
-            # Get image data and convert to matplotlib figure
-            img_data = drawer.GetDrawingText()
-            
-            # Convert to PIL Image
-            img = Image.open(io.BytesIO(img_data))
-            
-            # Create matplotlib figure with the similarity map
-            fig, ax = plt.subplots(figsize=(8, 8))
-            ax.imshow(img)
-            ax.set_title(f'{title}\n(Blue: Positive Contribution, Red: Negative Contribution)', 
-                        fontsize=12, pad=20)
-            ax.axis('off')
-            
-            # Add colorbar explanation
-            from matplotlib.patches import Rectangle
-            legend_elements = [
-                Rectangle((0, 0), 1, 1, facecolor='red', alpha=0.7, label='Negative Contribution'),
-                Rectangle((0, 0), 1, 1, facecolor='blue', alpha=0.7, label='Positive Contribution'),
-                Rectangle((0, 0), 1, 1, facecolor='white', edgecolor='black', label='No Contribution')
-            ]
-            ax.legend(handles=legend_elements, loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=3)
-            
-            plt.tight_layout()
-            print("DEBUG: Custom RDKit similarity map created successfully!")
-            return fig
-            
-        except Exception as e:
-            print(f"DEBUG: Custom RDKit similarity map failed: {str(e)}")
-            import traceback
-            traceback.print_exc()
-        
-        # Method 2: Try standard RDKit SimilarityMaps (if available)
-        try:
-            print("DEBUG: Attempting standard RDKit SimilarityMaps...")
-            from rdkit.Chem import Draw
-            
-            # Create a proper drawing context
-            drawer = Draw.rdMolDraw2D.MolDraw2DCairo(400, 400)
-            
             fig = SimilarityMaps.GetSimilarityMapFromWeights(
                 mol, 
                 contribs, 
-                draw2d=drawer,
                 colorMap='RdBu_r', 
                 contourLines=10,
-                size=(400, 400)
+                size=(300, 300)
             )
             if fig is not None:
-                print("DEBUG: Standard RDKit SimilarityMaps succeeded!")
                 return fig
-            else:
-                print("DEBUG: Standard RDKit SimilarityMaps returned None")
-        except Exception as e:
-            print(f"DEBUG: Standard RDKit SimilarityMaps failed: {str(e)}")
+        except:
+            pass
         
-        # Method 2: Try standard RDKit SimilarityMaps (if available)
-        try:
-            print("DEBUG: Attempting standard RDKit SimilarityMaps...")
-            from rdkit.Chem import Draw
-            
-            # Create a proper drawing context
-            drawer = Draw.rdMolDraw2D.MolDraw2DCairo(400, 400)
-            
-            fig = SimilarityMaps.GetSimilarityMapFromWeights(
-                mol, 
-                contribs, 
-                draw2d=drawer,
-                colorMap='RdBu_r', 
-                contourLines=10,
-                size=(400, 400)
-            )
-            if fig is not None:
-                print("DEBUG: Standard RDKit SimilarityMaps succeeded!")
-                return fig
-            else:
-                print("DEBUG: Standard RDKit SimilarityMaps returned None")
-        except Exception as e:
-            print(f"DEBUG: Standard RDKit SimilarityMaps failed: {str(e)}")
+        # Fallback: Create a custom visualization
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
         
-        # Method 3: Fallback with molecule structure + contribution overlay
-        print("DEBUG: Creating enhanced fallback with molecular structure...")
-        try:
-            # Get molecule image
-            mol_img = Draw.MolToImage(mol, size=(300, 300), kekulize=True, wedgeBonds=True)
-            
-            # Create figure with molecule and contribution data
-            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
-            
-            # Left: Molecule structure
-            ax1.imshow(mol_img)
-            ax1.set_title(f'{title} - Molecular Structure')
-            ax1.axis('off')
-            
-            # Right: Contribution heatmap by atom
-            atom_symbols = [atom.GetSymbol() for atom in mol.GetAtoms()]
-            y_pos = np.arange(len(atom_symbols))
-            
-            colors = ['red' if c < 0 else 'blue' for c in contribs]
-            bars = ax2.barh(y_pos, contribs, color=colors, alpha=0.7)
-            
-            ax2.set_yticks(y_pos)
-            ax2.set_yticklabels([f'{symbol}({i})' for i, symbol in enumerate(atom_symbols)])
-            ax2.set_xlabel('Contribution Value')
-            ax2.set_title(f'{title} - Atomic Contributions')
-            ax2.axvline(x=0, color='black', linestyle='-', alpha=0.3)
-            
-            # Add value labels
-            for i, (bar, val) in enumerate(zip(bars, contribs)):
-                width = bar.get_width()
-                ax2.text(width + (0.01 if width >= 0 else -0.01), bar.get_y() + bar.get_height()/2,
-                        f'{val:.3f}', ha='left' if width >= 0 else 'right', va='center', fontsize=8)
-            
-            plt.tight_layout()
-            print("DEBUG: Enhanced fallback visualization created successfully!")
-            return fig
-            
-        except Exception as e:
-            print(f"DEBUG: Enhanced fallback failed: {str(e)}")
+        # Left plot: Molecule structure (basic)
+        ax1.text(0.5, 0.5, 'Molecular Structure\n(RDKit visualization\nnot available)', 
+                ha='center', va='center', transform=ax1.transAxes, fontsize=12)
+        ax1.set_title(f'{title} - Structure')
+        ax1.axis('off')
         
-        # Method 4: Simple fallback
-        print("DEBUG: Creating simple fallback visualization...")
-        fig, ax = plt.subplots(figsize=(8, 6))
-        
-        # Simple bar chart with atom information
+        # Right plot: Contribution bar chart
         atom_indices = range(len(contribs))
         colors = ['red' if c < 0 else 'blue' for c in contribs]
         
-        bars = ax.bar(atom_indices, contribs, color=colors, alpha=0.7)
-        ax.set_xlabel('Atom Index')
-        ax.set_ylabel('Contribution Value')
-        ax.set_title(f'{title} - Atomic Contributions\n(Red: Negative, Blue: Positive)')
-        ax.axhline(y=0, color='black', linestyle='-', alpha=0.3)
+        bars = ax2.bar(atom_indices, contribs, color=colors, alpha=0.7)
+        ax2.set_xlabel('Atom Index')
+        ax2.set_ylabel('Contribution Value')
+        ax2.set_title(f'{title} - Atomic Contributions')
+        ax2.axhline(y=0, color='black', linestyle='-', alpha=0.3)
         
         # Add value labels on bars
         for i, (bar, val) in enumerate(zip(bars, contribs)):
             height = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2., height + (0.01 if height >= 0 else -0.01),
+            ax2.text(bar.get_x() + bar.get_width()/2., height + (0.01 if height >= 0 else -0.01),
                     f'{val:.3f}', ha='center', va='bottom' if height >= 0 else 'top', fontsize=8)
         
         plt.tight_layout()
-        print("DEBUG: Simple fallback visualization created successfully!")
         return fig
         
     except Exception as e:
-        print(f"DEBUG: Major error in vis_contribs: {str(e)}")
         # Create a simple error plot
         try:
             import matplotlib.pyplot as plt
@@ -401,10 +256,8 @@ def vis_contribs(mol, contribs, contrib_type, title="Contribution Map"):
             ax.set_xlim(0, 1)
             ax.set_ylim(0, 1)
             ax.axis('off')
-            print("DEBUG: Error plot created")
             return fig
-        except Exception as e2:
-            print(f"DEBUG: Failed to create error plot: {str(e2)}")
+        except:
             return None
 
 # Alternative contribution visualization function
@@ -864,13 +717,20 @@ def handle_smiles_input():
                                     
                                     with col2:
                                         if len(top_neg) > 0:
-                                            st.markdown("**🔴 Decrease IC50 (More Potent):**")
+                                            st.markdown("**� Decrease IC50 (More Potent):**")
                                             for _, row in top_neg.iterrows():
                                                 st.write(f"• {row['Atom_Symbol']} (#{row['Atom_Index']}): {row['Contribution']:.3f}")
                                 else:
                                     st.info("Regression contribution data not available")
-    
-    elif predict_button and not single_input:
+                        
+                        # Show raw contribution data as alternative
+                        with st.expander("�📊 View Raw Contribution Data"):
+                            if mol:
+                                st.markdown("**Molecular Information:**")
+                                st.write(f"- Number of atoms: {mol.GetNumAtoms()}")
+                                st.write(f"- SMILES: {single_input}")
+                                
+                                # You could add more debugging info here if needed    elif predict_button and not single_input:
         st.error("⚠️ Please enter a SMILES string.")
 
 # Function to handle the home page
@@ -927,7 +787,7 @@ def excel_file_prediction(file, smiles_column):
             
             for index, row in df.iterrows():
                 smiles = row[smiles_column]
-                mol, class_prob, reg_value, class_map, reg_map, class_table, reg_table, error = single_input_prediction(smiles)
+                mol, class_prob, reg_value, class_map, reg_map, error = single_input_prediction(smiles)
                 
                 if error:
                     st.warning(f"Error predicting molecule {index + 1}: {error}")
@@ -1003,7 +863,7 @@ def sdf_file_prediction(file):
             for idx, mol_sdf in enumerate(suppl):
                 if mol_sdf is not None:
                     smiles = Chem.MolToSmiles(mol_sdf)
-                    mol, class_prob, reg_value, class_map, reg_map, class_table, reg_table, error = single_input_prediction(smiles)
+                    mol, class_prob, reg_value, class_map, reg_map, error = single_input_prediction(smiles)
                     
                     if error:
                         st.warning(f"Error predicting molecule {idx + 1}: {error}")

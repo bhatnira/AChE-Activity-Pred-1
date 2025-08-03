@@ -1,13 +1,12 @@
 [global]
 developmentMode = false
-logLevel = "info"
 
 [server]
 headless = true
 address = "0.0.0.0"
 port = 10000
-enableCORS = false
-enableXsrfProtection = true
+enableCORS = true
+enableXsrfProtection = false
 maxUploadSize = 200
 maxMessageSize = 200
 enableWebsocketCompression = true
@@ -30,12 +29,6 @@ messageFormat = "%(asctime)s %(message)s"
 
 [runner]
 magicEnabled = true
-installTracer = false
-fixMatplotlib = true
 
 [mapbox]
 token = ""
-
-[deprecation]
-showfileUploaderEncoding = false
-showImageFormat = false
