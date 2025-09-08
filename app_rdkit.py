@@ -170,6 +170,57 @@ def single_input_prediction(smiles, selected_descriptors, explainer):
                 return None, None, None, None, None, None
     return None, None, None, None, None, None
 
+# Function to display prediction results in consistent iOS-style format
+def display_prediction_results(classification_prediction, classification_probability, regression_prediction, method_name="RDKit", show_download=True, download_data=None, download_filename="lime_explanation.html", download_key="default"):
+    """Display prediction results in consistent iOS-style format across all input methods"""
+    # Define prediction result variables
+    activity_status = 'Active' if classification_prediction == 1 else 'Inactive'
+    activity_color = '#34C759' if classification_prediction == 1 else '#FF3B30'
+    activity_icon = '🟢' if classification_prediction == 1 else '🔴'
+    ic50_value = 10**(regression_prediction)
+    
+    # Beautiful prediction results using native Streamlit components
+    with st.container():
+        # Status header with icon
+        st.markdown(f"""
+        <div style="text-align: center; padding: 20px; background-color: {activity_color}10; border-radius: 15px; border: 2px solid {activity_color}30; margin: 10px 0;">
+            <div style="font-size: 4rem;">{activity_icon}</div>
+            <h2 style="color: {activity_color}; margin: 10px 0;">{activity_status}</h2>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Metrics in columns using native Streamlit
+        col_a, col_b, col_c = st.columns(3)
+        
+        with col_a:
+            st.metric(
+                label="Confidence",
+                value=f"{classification_probability:.1%}"
+            )
+        
+        with col_b:
+            st.metric(
+                label="IC50 Prediction", 
+                value=f"{ic50_value:.1f} nM"
+            )
+        
+        with col_c:
+            st.metric(
+                label="Method",
+                value=method_name
+            )
+    
+    # Download button if data provided
+    if show_download and download_data:
+        st.download_button(
+            label="📥 Download LIME Analysis",
+            data=download_data,
+            file_name=download_filename,
+            mime='text/html',
+            type="primary",
+            key=download_key
+        )
+
 # Function to handle drawing input
 def handle_drawing_input(explainer, selected_descriptors):
     st.markdown("### 🎨 Draw Molecule")
@@ -204,45 +255,16 @@ def handle_drawing_input(explainer, selected_descriptors):
                     st.code(smile_code, language="text")
                 
                 with col2:
-                    st.markdown("### 📊 Prediction Results")
-                    
-                    # iOS-style compact prediction card
-                    activity_status = 'Potent' if classification_prediction == 1 else 'Not Potent'
-                    activity_color = '#4CAF50' if classification_prediction == 1 else '#f44336'
-                    ic50_value = 10**(regression_prediction)
-                    
-                    st.markdown(f"""
-                    <div class="prediction-card">
-                        <div class="prediction-header">
-                            <span class="prediction-icon">🎯</span>
-                            <span class="prediction-title">RDKit Prediction</span>
-                        </div>
-                        <div class="prediction-content">
-                            <div class="metric-row">
-                                <span class="metric-label">Activity</span>
-                                <span class="status-badge status-{activity_status.lower().replace(' ', '-')}">{activity_status}</span>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-label">Confidence</span>
-                                <span class="metric-value">{classification_probability:.1%}</span>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-label">IC50</span>
-                                <span class="metric-value">{ic50_value:.1f} nM</span>
-                            </div>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Prominent download button
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    st.download_button(
-                        label="� Download LIME Explanation",
-                        data=explanation.as_html(),
-                        file_name='explanation.html',
-                        mime='text/html',
-                        key="rdkit_draw_download",
-                        type="primary"
+                    # Use standardized prediction display
+                    display_prediction_results(
+                        classification_prediction=classification_prediction,
+                        classification_probability=classification_probability,
+                        regression_prediction=regression_prediction,
+                        method_name="RDKit",
+                        show_download=True,
+                        download_data=explanation.as_html(),
+                        download_filename='lime_explanation.html',
+                        download_key="rdkit_draw_download"
                     )
                 
                 with st.expander("🔬 Detailed Molecular Descriptors"):
@@ -286,53 +308,17 @@ def handle_smiles_input(explainer, selected_descriptors):
                 st.code(single_input, language="text")
             
             with col2:
-                # iOS-style compact prediction card
-                activity_status = 'Potent' if classification_prediction == 1 else 'Not Potent'
-                ic50_value = 10**(regression_prediction)
-                
-                st.markdown(f"""
-                <div class="prediction-card">
-                    <div class="prediction-header">
-                        <span class="prediction-icon">🎯</span>
-                        <span class="prediction-title">RDKit Prediction</span>
-                    </div>
-                    <div class="prediction-content">
-                        <div class="metric-row">
-                            <span class="metric-label">Activity</span>
-                            <span class="status-badge status-{activity_status.lower().replace(' ', '-')}">{activity_status}</span>
-                        </div>
-                        <div class="metric-row">
-                            <span class="metric-label">Confidence</span>
-                            <span class="metric-value">{classification_probability:.1%}</span>
-                        </div>
-                        <div class="metric-row">
-                            <span class="metric-label">IC50</span>
-                            <span class="metric-value">{ic50_value:.1f} nM</span>
-                        </div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                st.markdown("### 📈 LIME AI Explanation")
-                st.markdown("The LIME explanation shows which molecular features contribute most to the prediction:")
-                
-                st.download_button(
-                    label="� Download LIME Explanation",
-                    data=explanation.as_html(),
-                    file_name='lime_explanation.html',
-                    mime='text/html',
-                    type="primary",
-                    key="rdkit_smiles_download"
+                # Use standardized prediction display
+                display_prediction_results(
+                    classification_prediction=classification_prediction,
+                    classification_probability=classification_probability,
+                    regression_prediction=regression_prediction,
+                    method_name="RDKit",
+                    show_download=True,
+                    download_data=explanation.as_html(),
+                    download_filename='lime_explanation.html',
+                    download_key="rdkit_smiles_download"
                 )
-                
-                # Show simplified interpretation
-                st.markdown("""
-                <div class="result-card">
-                    <h4>Quick Interpretation:</h4>
-                    <p>The AI model analyzed molecular descriptors and structural features to make this prediction. 
-                    The LIME explanation shows which specific molecular properties had the most influence on the result.</p>
-                </div>
-                """, unsafe_allow_html=True)
             
             # Expandable descriptor details
             with st.expander("🔬 View Molecular Descriptors"):

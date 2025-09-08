@@ -238,10 +238,10 @@ def vis_contribs(mol, contribs, contrib_type, title="Contribution Map"):
                     # White for zero contribution
                     atom_colors[i] = (1.0, 1.0, 1.0)
             
-            # Create drawer
-            drawer = rdMolDraw2D.MolDraw2DCairo(400, 400)
+            # Create drawer with higher resolution
+            drawer = rdMolDraw2D.MolDraw2DCairo(800, 800)
             
-            # Draw molecule with highlighted atoms
+            # Draw molecule with highlighted atoms (no labels or text)
             drawer.DrawMolecule(mol, 
                               highlightAtoms=list(range(mol.GetNumAtoms())), 
                               highlightAtomColors=atom_colors)
@@ -253,21 +253,29 @@ def vis_contribs(mol, contribs, contrib_type, title="Contribution Map"):
             # Convert to PIL Image
             img = Image.open(io.BytesIO(img_data))
             
-            # Create matplotlib figure with the similarity map
-            fig, ax = plt.subplots(figsize=(8, 8))
+            # Create matplotlib figure with the similarity map (high resolution, with legend)
+            fig, ax = plt.subplots(figsize=(10, 10), dpi=300)
             ax.imshow(img)
-            ax.set_title(f'{title}\n(Blue: Positive Contribution, Red: Negative Contribution)', 
-                        fontsize=12, pad=20)
             ax.axis('off')
             
-            # Add colorbar explanation
+            # Add a simple color legend
             from matplotlib.patches import Rectangle
-            legend_elements = [
-                Rectangle((0, 0), 1, 1, facecolor='red', alpha=0.7, label='Negative Contribution'),
-                Rectangle((0, 0), 1, 1, facecolor='blue', alpha=0.7, label='Positive Contribution'),
-                Rectangle((0, 0), 1, 1, facecolor='white', edgecolor='black', label='No Contribution')
-            ]
-            ax.legend(handles=legend_elements, loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=3)
+            from matplotlib.collections import PatchCollection
+            
+            # Create legend patches
+            red_patch = Rectangle((0, 0), 1, 1, facecolor='red', alpha=0.7)
+            blue_patch = Rectangle((0, 0), 1, 1, facecolor='blue', alpha=0.7)
+            
+            # Add legend
+            ax.legend([red_patch, blue_patch], ['Negative Contribution', 'Positive Contribution'], 
+                     loc='upper right', bbox_to_anchor=(0.98, 0.98), fontsize=12, 
+                     frameon=True, fancybox=True, shadow=True, framealpha=0.9)
+            
+            # Remove all margins, padding, and ensure clean boundaries
+            plt.subplots_adjust(left=0, right=1, top=1, bottom=0, hspace=0, wspace=0)
+            plt.margins(0)
+            ax.set_xlim(0, img.width)
+            ax.set_ylim(img.height, 0)
             
             plt.tight_layout()
             print("DEBUG: Custom RDKit similarity map created successfully!")
@@ -326,38 +334,22 @@ def vis_contribs(mol, contribs, contrib_type, title="Contribution Map"):
         except Exception as e:
             print(f"DEBUG: Standard RDKit SimilarityMaps failed: {str(e)}")
         
-        # Method 3: Fallback with molecule structure + contribution overlay
+        # Method 3: Fallback with molecule structure + contribution overlay (high resolution, clean)
         print("DEBUG: Creating enhanced fallback with molecular structure...")
         try:
-            # Get molecule image
-            mol_img = Draw.MolToImage(mol, size=(300, 300), kekulize=True, wedgeBonds=True)
+            # Get molecule image at higher resolution
+            mol_img = Draw.MolToImage(mol, size=(800, 800), kekulize=True, wedgeBonds=True)
             
-            # Create figure with molecule and contribution data
-            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+            # Create figure with molecule only (no titles or text)
+            fig, ax = plt.subplots(1, 1, figsize=(10, 10), dpi=300)
             
-            # Left: Molecule structure
-            ax1.imshow(mol_img)
-            ax1.set_title(f'{title} - Molecular Structure')
-            ax1.axis('off')
+            # Show molecule structure only
+            ax.imshow(mol_img)
+            ax.axis('off')
             
-            # Right: Contribution heatmap by atom
-            atom_symbols = [atom.GetSymbol() for atom in mol.GetAtoms()]
-            y_pos = np.arange(len(atom_symbols))
-            
-            colors = ['red' if c < 0 else 'blue' for c in contribs]
-            bars = ax2.barh(y_pos, contribs, color=colors, alpha=0.7)
-            
-            ax2.set_yticks(y_pos)
-            ax2.set_yticklabels([f'{symbol}({i})' for i, symbol in enumerate(atom_symbols)])
-            ax2.set_xlabel('Contribution Value')
-            ax2.set_title(f'{title} - Atomic Contributions')
-            ax2.axvline(x=0, color='black', linestyle='-', alpha=0.3)
-            
-            # Add value labels
-            for i, (bar, val) in enumerate(zip(bars, contribs)):
-                width = bar.get_width()
-                ax2.text(width + (0.01 if width >= 0 else -0.01), bar.get_y() + bar.get_height()/2,
-                        f'{val:.3f}', ha='left' if width >= 0 else 'right', va='center', fontsize=8)
+            # Remove all margins, padding, and ensure clean boundaries
+            plt.subplots_adjust(left=0, right=1, top=1, bottom=0, hspace=0, wspace=0)
+            plt.margins(0)
             
             plt.tight_layout()
             print("DEBUG: Enhanced fallback visualization created successfully!")
@@ -366,46 +358,58 @@ def vis_contribs(mol, contribs, contrib_type, title="Contribution Map"):
         except Exception as e:
             print(f"DEBUG: Enhanced fallback failed: {str(e)}")
         
-        # Method 4: Simple fallback
-        print("DEBUG: Creating simple fallback visualization...")
-        fig, ax = plt.subplots(figsize=(8, 6))
-        
-        # Simple bar chart with atom information
-        atom_indices = range(len(contribs))
-        colors = ['red' if c < 0 else 'blue' for c in contribs]
-        
-        bars = ax.bar(atom_indices, contribs, color=colors, alpha=0.7)
-        ax.set_xlabel('Atom Index')
-        ax.set_ylabel('Contribution Value')
-        ax.set_title(f'{title} - Atomic Contributions\n(Red: Negative, Blue: Positive)')
-        ax.axhline(y=0, color='black', linestyle='-', alpha=0.3)
-        
-        # Add value labels on bars
-        for i, (bar, val) in enumerate(zip(bars, contribs)):
-            height = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2., height + (0.01 if height >= 0 else -0.01),
-                    f'{val:.3f}', ha='center', va='bottom' if height >= 0 else 'top', fontsize=8)
-        
-        plt.tight_layout()
-        print("DEBUG: Simple fallback visualization created successfully!")
-        return fig
+        # Method 4: Simple molecular structure only (high resolution, completely clean)
+        print("DEBUG: Creating simple molecular structure visualization...")
+        try:
+            # Get high-resolution molecule image
+            mol_img = Draw.MolToImage(mol, size=(800, 800), kekulize=True, wedgeBonds=True)
+            
+            # Create clean figure with just the molecule
+            fig, ax = plt.subplots(figsize=(10, 10), dpi=300)
+            
+            # Show molecule only
+            ax.imshow(mol_img)
+            ax.axis('off')
+            
+            # Remove all margins, padding, and ensure clean boundaries  
+            plt.subplots_adjust(left=0, right=1, top=1, bottom=0, hspace=0, wspace=0)
+            plt.margins(0)
+            
+            plt.tight_layout()
+            print("DEBUG: Simple molecular structure visualization created successfully!")
+            return fig
+            
+        except Exception as e:
+            print(f"DEBUG: Simple molecular structure failed: {str(e)}")
+            # Fall back to basic error handling
+            return None
         
     except Exception as e:
         print(f"DEBUG: Major error in vis_contribs: {str(e)}")
-        # Create a simple error plot
-        try:
-            import matplotlib.pyplot as plt
-            fig, ax = plt.subplots(figsize=(8, 4))
-            ax.text(0.5, 0.5, f'{title}\nVisualization Error:\n{str(e)[:100]}...', 
-                   ha='center', va='center', transform=ax.transAxes, fontsize=10)
-            ax.set_xlim(0, 1)
-            ax.set_ylim(0, 1)
-            ax.axis('off')
-            print("DEBUG: Error plot created")
-            return fig
-        except Exception as e2:
-            print(f"DEBUG: Failed to create error plot: {str(e2)}")
-            return None
+        # Return None for completely clean error handling (no text overlay)
+        return None
+
+# Function to save figure as high-resolution image and return download data
+def save_contrib_map_for_download(fig, filename_prefix="contribution_map"):
+    """Save matplotlib figure as high-resolution PNG and return download data"""
+    try:
+        import io
+        import base64
+        
+        # Save figure to bytes buffer
+        img_buffer = io.BytesIO()
+        fig.savefig(img_buffer, format='png', dpi=300, bbox_inches='tight', 
+                   pad_inches=0.1, facecolor='white', edgecolor='none')
+        img_buffer.seek(0)
+        
+        # Get image data
+        img_data = img_buffer.getvalue()
+        img_buffer.close()
+        
+        return img_data
+    except Exception as e:
+        print(f"Error saving contribution map: {str(e)}")
+        return None
 
 # Alternative contribution visualization function
 def create_contribution_table(mol, contribs, title="Atomic Contributions"):
@@ -522,6 +526,57 @@ def single_input_prediction(smiles):
         if os.path.exists(sdf_path):
             os.remove(sdf_path)
 
+# Function to display prediction results in consistent iOS-style format
+def display_prediction_results(classification_prediction, classification_probability, regression_prediction, method_name="Graph Conv", show_download=True, download_data=None, download_filename="graph_explanation.html", download_key="default"):
+    """Display prediction results in consistent iOS-style format across all input methods"""
+    # Define prediction result variables
+    activity_status = 'Active' if classification_prediction == 1 else 'Inactive'
+    activity_color = '#34C759' if classification_prediction == 1 else '#FF3B30'
+    activity_icon = '🟢' if classification_prediction == 1 else '🔴'
+    ic50_value = 10**(regression_prediction)
+    
+    # Beautiful prediction results using native Streamlit components
+    with st.container():
+        # Status header with icon
+        st.markdown(f"""
+        <div style="text-align: center; padding: 20px; background-color: {activity_color}10; border-radius: 15px; border: 2px solid {activity_color}30; margin: 10px 0;">
+            <div style="font-size: 4rem;">{activity_icon}</div>
+            <h2 style="color: {activity_color}; margin: 10px 0;">{activity_status}</h2>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Metrics in columns using native Streamlit
+        col_a, col_b, col_c = st.columns(3)
+        
+        with col_a:
+            st.metric(
+                label="Confidence",
+                value=f"{classification_probability:.1%}"
+            )
+        
+        with col_b:
+            st.metric(
+                label="IC50 Prediction", 
+                value=f"{ic50_value:.1f} nM"
+            )
+        
+        with col_c:
+            st.metric(
+                label="Method",
+                value=method_name
+            )
+    
+    # Download button if data provided
+    if show_download and download_data:
+        st.download_button(
+            label="📥 Download Analysis",
+            data=download_data,
+            file_name=download_filename,
+            mime='text/html',
+            type="primary",
+            key=download_key
+        )
+
 # Function to handle drawing input
 def handle_drawing_input():
     st.markdown("### 🎨 Draw Molecule")
@@ -545,43 +600,17 @@ def handle_drawing_input():
             if error:
                 st.error(f"Prediction error: {error}")
             elif mol is not None:
-                # Results layout
-                col1, col2 = st.columns([1, 2])
-                
-                with col1:
-                    st.markdown("**🧪 Structure**")
-                    mol_img = Draw.MolToImage(mol, size=(180, 150), kekulize=True, wedgeBonds=True)
-                    st.image(mol_img, use_column_width=True)
-                    st.code(smile_code, language="text")
-                
-                with col2:
-                    st.markdown("### 📊 Prediction Results")
-                    
-                    # iOS-style compact prediction card
-                    activity_status = 'Potent' if class_prob > 0.5 else 'Not Potent'
-                    
-                    st.markdown(f"""
-                    <div class="prediction-card">
-                        <div class="prediction-header">
-                            <span class="prediction-icon">📊</span>
-                            <span class="prediction-title">Graph NN Prediction</span>
-                        </div>
-                        <div class="prediction-content">
-                            <div class="metric-row">
-                                <span class="metric-label">Activity</span>
-                                <span class="status-badge status-{activity_status.lower().replace(' ', '-')}">{activity_status}</span>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-label">Confidence</span>
-                                <span class="metric-value">{class_prob:.1%}</span>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-label">IC50</span>
-                                <span class="metric-value">{reg_value:.1f} nM</span>
-                            </div>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
+                # Results layout - emphasis on prediction results only
+                # Use standardized prediction display
+                classification_prediction = 1 if class_prob > 0.5 else 0
+                display_prediction_results(
+                    classification_prediction=classification_prediction,
+                    classification_probability=class_prob,
+                    regression_prediction=np.log10(reg_value),
+                    method_name="Graph Conv",
+                    show_download=False,
+                    download_key="graph_draw_download"
+                )
                 
                 # Contribution maps
                 if class_map or reg_map:
@@ -593,22 +622,34 @@ def handle_drawing_input():
                         with map_col1:
                             st.markdown("**Classification Contributions**")
                             st.pyplot(class_map)
+                            
+                            # Add download button for classification map
+                            class_img_data = save_contrib_map_for_download(class_map, "classification_contrib")
+                            if class_img_data:
+                                st.download_button(
+                                    label="📥 Download PNG",
+                                    data=class_img_data,
+                                    file_name=f"classification_contribution_map.png",
+                                    mime="image/png",
+                                    type="secondary"
+                                )
                     
                     if reg_map:
                         with map_col2:
                             st.markdown("**Regression Contributions**")
                             st.pyplot(reg_map)
+                            
+                            # Add download button for regression map
+                            reg_img_data = save_contrib_map_for_download(reg_map, "regression_contrib")
+                            if reg_img_data:
+                                st.download_button(
+                                    label="📥 Download PNG",
+                                    data=reg_img_data,
+                                    file_name=f"regression_contribution_map.png",
+                                    mime="image/png",
+                                    type="secondary"
+                                )
                 else:
-                    # Show that contribution analysis is available but visualization failed
-                    st.markdown("### 🗺️ Atomic Contribution Analysis")
-                    st.info("""
-                    🔄 **Contribution Analysis Available**
-                    
-                    The Graph Neural Network has calculated atomic contributions, but the visualization maps 
-                    are currently not displaying. The contribution data is still being calculated and used 
-                    internally by the model for making predictions.
-                    """)
-                    
                     # Show contribution tables as alternative
                     if class_table is not None or reg_table is not None:
                         st.markdown("**📊 Atomic Contribution Data:**")
@@ -651,62 +692,19 @@ def handle_smiles_input():
         if error:
             st.error(f"Prediction error: {error}")
         elif mol is not None:
-            # Display results in beautiful cards
-            st.markdown("## 📊 Prediction Results")
-            
-            # Molecule structure and results section
-            col1, col2 = st.columns([1, 2])
-            
-            with col1:
-                st.markdown("**🧪 Structure**")
-                mol_img = Draw.MolToImage(mol, size=(180, 150), kekulize=True, wedgeBonds=True)
-                st.image(mol_img, use_column_width=True)
-                st.code(single_input, language="text")
-            
-            with col2:
-                # iOS-style compact prediction card
-                activity_status = 'Potent' if class_prob > 0.5 else 'Not Potent'
-                
-                st.markdown(f"""
-                <div class="prediction-card">
-                    <div class="prediction-header">
-                        <span class="prediction-icon">📊</span>
-                        <span class="prediction-title">Graph NN Prediction</span>
-                    </div>
-                    <div class="prediction-content">
-                        <div class="metric-row">
-                            <span class="metric-label">Activity</span>
-                            <span class="status-badge status-{activity_status.lower().replace(' ', '-')}">{activity_status}</span>
-                        </div>
-                        <div class="metric-row">
-                            <span class="metric-label">Confidence</span>
-                            <span class="metric-value">{class_prob:.1%}</span>
-                        </div>
-                        <div class="metric-row">
-                            <span class="metric-label">IC50</span>
-                            <span class="metric-value">{reg_value:.1f} nM</span>
-                        </div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                st.markdown("### 📈 Graph Neural Network Analysis")
-                st.markdown("AI analysis using graph convolutional networks for molecular property prediction:")
-                
-                # Show simplified interpretation
-                st.markdown("""
-                <div class="result-card">
-                    <h4>Model Interpretation:</h4>
-                    <p>The Graph Neural Network models analyzed the molecular structure and atom connectivity 
-                    to predict both classification (active/inactive) and regression (IC50) values. 
-                    Contribution maps show which atoms contribute most to the predictions.</p>
-                </div>
-                """, unsafe_allow_html=True)
+            # Use standardized prediction display
+            classification_prediction = 1 if class_prob > 0.5 else 0
+            display_prediction_results(
+                classification_prediction=classification_prediction,
+                classification_probability=class_prob,
+                regression_prediction=np.log10(reg_value),
+                method_name="Graph Conv",
+                show_download=False,
+                download_key="graph_smiles_download"
+            )
             
             # Contribution maps
             if class_map or reg_map:
-                st.markdown("### 🗺️ Atomic Contribution Analysis")
-                st.markdown("*Graph Neural Network interpretability: Which atoms drive the predictions?*")
                 
                 if class_map and reg_map:
                     map_col1, map_col2 = st.columns(2)
@@ -723,6 +721,17 @@ def handle_smiles_input():
                         """, unsafe_allow_html=True)
                         st.pyplot(class_map, use_container_width=True)
                         
+                        # Add download button for classification map
+                        class_img_data = save_contrib_map_for_download(class_map, "classification_contrib")
+                        if class_img_data:
+                            st.download_button(
+                                label="📥 Download Classification Map (PNG)",
+                                data=class_img_data,
+                                file_name=f"classification_contribution_map.png",
+                                mime="image/png",
+                                type="secondary"
+                            )
+                        
                     with map_col2:
                         st.markdown("""
                         <div style="background: linear-gradient(135deg, #2196F320, #2196F310); 
@@ -734,6 +743,17 @@ def handle_smiles_input():
                         </div>
                         """, unsafe_allow_html=True)
                         st.pyplot(reg_map, use_container_width=True)
+                        
+                        # Add download button for regression map
+                        reg_img_data = save_contrib_map_for_download(reg_map, "regression_contrib")
+                        if reg_img_data:
+                            st.download_button(
+                                label="📥 Download Regression Map (PNG)",
+                                data=reg_img_data,
+                                file_name=f"regression_contribution_map.png",
+                                mime="image/png",
+                                type="secondary"
+                            )
                 
                 elif class_map:
                     st.markdown("""
@@ -747,6 +767,17 @@ def handle_smiles_input():
                     """, unsafe_allow_html=True)
                     st.pyplot(class_map, use_container_width=True)
                     
+                    # Add download button for classification map
+                    class_img_data = save_contrib_map_for_download(class_map, "classification_contrib")
+                    if class_img_data:
+                        st.download_button(
+                            label="📥 Download Classification Map (PNG)",
+                            data=class_img_data,
+                            file_name=f"classification_contribution_map.png",
+                            mime="image/png",
+                            type="secondary"
+                        )
+                    
                 elif reg_map:
                     st.markdown("""
                     <div style="background: linear-gradient(135deg, #2196F320, #2196F310); 
@@ -758,43 +789,19 @@ def handle_smiles_input():
                     </div>
                     """, unsafe_allow_html=True)
                     st.pyplot(reg_map, use_container_width=True)
+                    
+                    # Add download button for regression map
+                    reg_img_data = save_contrib_map_for_download(reg_map, "regression_contrib")
+                    if reg_img_data:
+                        st.download_button(
+                            label="📥 Download Regression Map (PNG)",
+                            data=reg_img_data,
+                            file_name=f"regression_contribution_map.png",
+                            mime="image/png",
+                            type="secondary"
+                        )
                 
-                # Add interpretation guide
-                with st.expander("🔍 Understanding Contribution Maps"):
-                    col1, col2 = st.columns(2)
-                    
-                    with col1:
-                        st.markdown("""
-                        **🎨 Color Guide:**
-                        - 🔴 **Red**: Negative contribution
-                        - 🔵 **Blue**: Positive contribution  
-                        - ⚪ **White**: Neutral/minimal impact
-                        """)
-                    
-                    with col2:
-                        st.markdown("""
-                        **🧠 Interpretation:**
-                        - **Classification**: Blue = more active
-                        - **Regression**: Blue = higher IC50 (less potent)
-                        - Helps identify key pharmacophores
-                        """)
-                        
             else:
-                # Show that contribution analysis is available but visualization failed
-                st.markdown("### 🗺️ Atomic Contribution Analysis")
-                st.info("""
-                🔄 **Contribution Analysis Available**
-                
-                The Graph Neural Network has calculated atomic contributions, but the visualization maps 
-                are currently not displaying. This could be due to:
-                - Environment configuration issues
-                - RDKit drawing dependencies
-                - Matplotlib backend settings
-                
-                The contribution data is still being calculated and used internally by the model 
-                for making predictions.
-                """)
-                
                 # Show raw contribution data as alternative
                 if class_table is not None or reg_table is not None:
                             st.markdown("**📊 Atomic Contribution Data:**")
@@ -912,13 +919,84 @@ def excel_file_prediction(file, smiles_column):
                     # Display result with emphasis on prediction
                     st.markdown(f"### 🧬 Molecule {index + 1}")
                     
-                    col1, col2 = st.columns([1, 2])
+                    # iOS-style compact prediction card
+                    activity_status = 'Potent' if class_prob > 0.5 else 'Not Potent'
                     
-                    with col1:
-                        st.image(Draw.MolToImage(mol, size=(120, 100), kekulize=True, wedgeBonds=True), use_column_width=True)
-                        st.code(smiles, language="text")
+                    st.markdown(f"""
+                    <div class="prediction-card">
+                        <div class="prediction-header">
+                            <span class="prediction-icon">📊</span>
+                            <span class="prediction-title">Graph NN Prediction</span>
+                        </div>
+                        <div class="prediction-content">
+                            <div class="metric-row">
+                                <span class="metric-label">Activity</span>
+                                <span class="status-badge status-{activity_status.lower().replace(' ', '-')}">{activity_status}</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Confidence</span>
+                                <span class="metric-value">{class_prob:.1%}</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">IC50</span>
+                                <span class="metric-value">{reg_value:.1f} nM</span>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
                     
-                    with col2:
+                    # Contribution maps
+                    if class_map or reg_map:
+                        st.markdown("**🗺️ Contribution Analysis:**")
+                        
+                        if class_map and reg_map:
+                            map_col1, map_col2 = st.columns(2)
+                            with map_col1:
+                                st.markdown("*Classification*")
+                                st.pyplot(class_map, use_container_width=True)
+                            with map_col2:
+                                st.markdown("*Regression*")
+                                st.pyplot(reg_map, use_container_width=True)
+                        elif class_map:
+                            st.markdown("*Classification Contributions*")
+                            st.pyplot(class_map, use_container_width=True)
+                        elif reg_map:
+                            st.markdown("*Regression Contributions*")
+                            st.pyplot(reg_map, use_container_width=True)
+            
+            st.write(df)
+            
+        except Exception as e:
+            st.error(f'Error loading data: {e}')
+    else:
+        st.warning('Please upload a file containing SMILES strings.')
+
+# Function to handle SDF file prediction
+def sdf_file_prediction(file):
+    if file is not None:
+        try:
+            # Save the uploaded SDF file temporarily
+            with open("temp.sdf", "wb") as f:
+                f.write(file.getvalue())
+            
+            suppl = Chem.SDMolSupplier("temp.sdf")
+            if suppl is None:
+                st.error('Failed to load SDF file.')
+                return
+            
+            for idx, mol_sdf in enumerate(suppl):
+                if mol_sdf is not None:
+                    smiles = Chem.MolToSmiles(mol_sdf)
+                    mol, class_prob, reg_value, class_map, reg_map, class_table, reg_table, error = single_input_prediction(smiles)
+                    
+                    if error:
+                        st.warning(f"Error predicting molecule {idx + 1}: {error}")
+                        continue
+                        
+                    if mol is not None:
+                        # Display result with emphasis on prediction
+                        st.markdown(f"### 🧬 Molecule {idx + 1}")
+                        
                         # iOS-style compact prediction card
                         activity_status = 'Potent' if class_prob > 0.5 else 'Not Potent'
                         
@@ -963,91 +1041,6 @@ def excel_file_prediction(file, smiles_column):
                             elif reg_map:
                                 st.markdown("*Regression Contributions*")
                                 st.pyplot(reg_map, use_container_width=True)
-            
-            st.write(df)
-            
-        except Exception as e:
-            st.error(f'Error loading data: {e}')
-    else:
-        st.warning('Please upload a file containing SMILES strings.')
-
-# Function to handle SDF file prediction
-def sdf_file_prediction(file):
-    if file is not None:
-        try:
-            # Save the uploaded SDF file temporarily
-            with open("temp.sdf", "wb") as f:
-                f.write(file.getvalue())
-            
-            suppl = Chem.SDMolSupplier("temp.sdf")
-            if suppl is None:
-                st.error('Failed to load SDF file.')
-                return
-            
-            for idx, mol_sdf in enumerate(suppl):
-                if mol_sdf is not None:
-                    smiles = Chem.MolToSmiles(mol_sdf)
-                    mol, class_prob, reg_value, class_map, reg_map, class_table, reg_table, error = single_input_prediction(smiles)
-                    
-                    if error:
-                        st.warning(f"Error predicting molecule {idx + 1}: {error}")
-                        continue
-                        
-                    if mol is not None:
-                        # Display result with emphasis on prediction
-                        st.markdown(f"### 🧬 Molecule {idx + 1}")
-                        
-                        col1, col2 = st.columns([1, 2])
-                        
-                        with col1:
-                            st.image(Draw.MolToImage(mol, size=(120, 100), kekulize=True, wedgeBonds=True), use_column_width=True)
-                            st.code(smiles, language="text")
-                        
-                        with col2:
-                            # iOS-style compact prediction card
-                            activity_status = 'Potent' if class_prob > 0.5 else 'Not Potent'
-                            
-                            st.markdown(f"""
-                            <div class="prediction-card">
-                                <div class="prediction-header">
-                                    <span class="prediction-icon">📊</span>
-                                    <span class="prediction-title">Graph NN Prediction</span>
-                                </div>
-                                <div class="prediction-content">
-                                    <div class="metric-row">
-                                        <span class="metric-label">Activity</span>
-                                        <span class="status-badge status-{activity_status.lower().replace(' ', '-')}">{activity_status}</span>
-                                    </div>
-                                    <div class="metric-row">
-                                        <span class="metric-label">Confidence</span>
-                                        <span class="metric-value">{class_prob:.1%}</span>
-                                    </div>
-                                    <div class="metric-row">
-                                        <span class="metric-label">IC50</span>
-                                        <span class="metric-value">{reg_value:.1f} nM</span>
-                                    </div>
-                                </div>
-                            </div>
-                            """, unsafe_allow_html=True)
-                            
-                            # Contribution maps
-                            if class_map or reg_map:
-                                st.markdown("**🗺️ Contribution Analysis:**")
-                                
-                                if class_map and reg_map:
-                                    map_col1, map_col2 = st.columns(2)
-                                    with map_col1:
-                                        st.markdown("*Classification*")
-                                        st.pyplot(class_map, use_container_width=True)
-                                    with map_col2:
-                                        st.markdown("*Regression*")
-                                        st.pyplot(reg_map, use_container_width=True)
-                                elif class_map:
-                                    st.markdown("*Classification Contributions*")
-                                    st.pyplot(class_map, use_container_width=True)
-                                elif reg_map:
-                                    st.markdown("*Regression Contributions*")
-                                    st.pyplot(reg_map, use_container_width=True)
                         
                         st.markdown("---")
             

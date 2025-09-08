@@ -316,6 +316,66 @@ def single_input_prediction(smiles):
             return None, None, None, None, None
     return None, None, None, None, None
 
+# Function to display prediction results in consistent iOS-style format
+def display_prediction_results(classification_prediction, classification_probability, method_name="ChemBERTa", show_download=True, download_data=None, download_filename="attention_analysis.html", download_key="default"):
+    """Display prediction results in consistent iOS-style format across all input methods"""
+    # Define prediction result variables
+    activity_status = 'Active' if classification_prediction == 1 else 'Inactive'
+    activity_color = '#34C759' if classification_prediction == 1 else '#FF3B30'
+    activity_icon = '🟢' if classification_prediction == 1 else '🔴'
+    
+    # Beautiful prediction results using native Streamlit components
+    with st.container():
+        # Status header with icon
+        st.markdown(f"""
+        <div style="text-align: center; padding: 20px; background-color: {activity_color}10; border-radius: 15px; border: 2px solid {activity_color}30; margin: 10px 0;">
+            <div style="font-size: 4rem;">{activity_icon}</div>
+            <h2 style="color: {activity_color}; margin: 10px 0;">{activity_status}</h2>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Metrics in columns using native Streamlit
+        col_a, col_b, col_c = st.columns(3)
+        
+        with col_a:
+            st.metric(
+                label="Confidence",
+                value=f"{classification_probability:.1%}"
+            )
+        
+        with col_b:
+            st.metric(
+                label="Target", 
+                value="AChE"
+            )
+        
+        with col_c:
+            st.metric(
+                label="Method",
+                value=method_name
+            )
+    
+    # Download button if data provided
+    if show_download and download_data:
+        st.download_button(
+            label="📥 Download Analysis",
+            data=download_data,
+            file_name=download_filename,
+            mime='text/html',
+            type="primary",
+            key=download_key
+        )
+    
+    # Color Legend Card
+    st.markdown("""
+    <div style="margin: 10px 0; padding: 15px; background: rgba(255, 255, 255, 0.95); border-radius: 12px; border: 1px solid rgba(0, 0, 0, 0.1); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+        <h4 style="margin: 0 0 10px 0; color: #007AFF; font-size: 16px; font-weight: 600;">Attention Analysis:</h4>
+        <p style="margin: 5px 0; color: #1D1D1F; font-size: 14px;">🔵 Blue: High attention to molecular substructures</p>
+        <p style="margin: 5px 0; color: #1D1D1F; font-size: 14px;">🔴 Red: Low attention weight</p>
+        <p style="margin: 5px 0; color: #1D1D1F; font-size: 14px;">⚪ Gray: Neutral attention</p>
+    </div>
+    """, unsafe_allow_html=True)
+
 # Function to handle drawing input
 def handle_drawing_input():
     st.markdown("### 🎨 Draw Molecule")
@@ -337,42 +397,24 @@ def handle_drawing_input():
                 mol, classification_prediction, classification_probability, attention_weights, tokens = single_input_prediction(smile_code)
             
             if mol is not None:
-                # Results layout
+                # Results layout - emphasis on prediction results
                 col1, col2 = st.columns([1, 2])
                 
                 with col1:
-                    st.markdown("**🧪 Molecular Structure**")
+                    st.markdown("**🧪 Structure & Analysis**")
                     mol_img = Draw.MolToImage(mol, size=(200, 160), kekulize=True, wedgeBonds=True)
                     st.image(mol_img, use_column_width=True)
                     st.code(smile_code, language="text")
                 
                 with col2:
-                    st.markdown("**📊 Prediction Results**")
-                    
-                    activity_status = 'Active' if classification_prediction == 1 else 'Inactive'
-                    
-                    st.markdown(f"""
-                    <div class="prediction-card">
-                        <div class="prediction-header">
-                            <span class="prediction-icon">🧠</span>
-                            <span class="prediction-title">ChemBERTa Prediction</span>
-                        </div>
-                        <div class="prediction-content">
-                            <div class="metric-row">
-                                <span class="metric-label">Activity</span>
-                                <span class="status-badge status-{activity_status.lower()}">{activity_status}</span>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-label">Confidence</span>
-                                <span class="metric-value">{classification_probability:.1%}</span>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-label">Target</span>
-                                <span class="metric-value">AChE</span>
-                            </div>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    # Use standardized prediction display
+                    display_prediction_results(
+                        classification_prediction=classification_prediction,
+                        classification_probability=classification_probability,
+                        method_name="ChemBERTa",
+                        show_download=False,
+                        download_key="chemberta_draw_download"
+                    )
                 
                 # Attention visualization
                 if attention_weights is not None and tokens is not None:
@@ -404,42 +446,31 @@ def handle_smiles_input():
             mol, classification_prediction, classification_probability, attention_weights, tokens = single_input_prediction(single_input)
             
         if mol is not None:
-            # Results layout
-            col1, col2 = st.columns([1, 2])
+            # Compact iOS-style results layout
+            col1, col2 = st.columns([1, 1.2])
             
             with col1:
-                st.markdown("**🧪 Molecular Structure**")
+                st.markdown("""
+                <div class="molecule-display">
+                """, unsafe_allow_html=True)
+                
                 mol_img = Draw.MolToImage(mol, size=(200, 160), kekulize=True, wedgeBonds=True)
                 st.image(mol_img, use_column_width=True)
                 st.code(single_input, language="text")
-            
-            with col2:
-                st.markdown("**📊 Prediction Results**")
                 
-                activity_status = 'Active' if classification_prediction == 1 else 'Inactive'
-                
-                st.markdown(f"""
-                <div class="prediction-card">
-                    <div class="prediction-header">
-                        <span class="prediction-icon">🧠</span>
-                        <span class="prediction-title">ChemBERTa Prediction</span>
-                    </div>
-                    <div class="prediction-content">
-                        <div class="metric-row">
-                            <span class="metric-label">Activity</span>
-                            <span class="status-badge status-{activity_status.lower()}">{activity_status}</span>
-                        </div>
-                        <div class="metric-row">
-                            <span class="metric-label">Confidence</span>
-                            <span class="metric-value">{classification_probability:.1%}</span>
-                        </div>
-                        <div class="metric-row">
-                            <span class="metric-label">Target</span>
-                            <span class="metric-value">AChE</span>
-                        </div>
-                    </div>
+                st.markdown("""
                 </div>
                 """, unsafe_allow_html=True)
+            
+            with col2:
+                # Use standardized prediction display
+                display_prediction_results(
+                    classification_prediction=classification_prediction,
+                    classification_probability=classification_probability,
+                    method_name="ChemBERTa",
+                    show_download=False,
+                    download_key="chemberta_smiles_download"
+                )
             
             # Attention visualization
             if attention_weights is not None and tokens is not None:
@@ -505,37 +536,29 @@ def excel_file_prediction(file, smiles_column):
                     # Display result with emphasis on prediction
                     st.markdown(f"### 🧬 Molecule {index + 1}")
                     
-                    col1, col2 = st.columns([1, 2])
+                    col1, col2 = st.columns([1, 1.2])
                     
                     with col1:
+                        st.markdown("""
+                        <div class="molecule-display">
+                        """, unsafe_allow_html=True)
+                        
                         st.image(Draw.MolToImage(mol, size=(120, 100), kekulize=True, wedgeBonds=True), use_column_width=True)
                         st.code(smiles, language="text")
-                    
-                    with col2:
-                        activity_status = 'Active' if classification_prediction == 1 else 'Inactive'
                         
-                        st.markdown(f"""
-                        <div class="prediction-card">
-                            <div class="prediction-header">
-                                <span class="prediction-icon">🧠</span>
-                                <span class="prediction-title">ChemBERTa Prediction</span>
-                            </div>
-                            <div class="prediction-content">
-                                <div class="metric-row">
-                                    <span class="metric-label">Activity</span>
-                                    <span class="status-badge status-{activity_status.lower()}">{activity_status}</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">Confidence</span>
-                                    <span class="metric-value">{classification_probability:.1%}</span>
-                                </div>
-                                <div class="metric-row">
-                                    <span class="metric-label">Target</span>
-                                    <span class="metric-value">AChE</span>
-                                </div>
-                            </div>
+                        st.markdown("""
                         </div>
                         """, unsafe_allow_html=True)
+                    
+                    with col2:
+                        # Use standardized prediction display
+                        display_prediction_results(
+                            classification_prediction=classification_prediction,
+                            classification_probability=classification_probability,
+                            method_name="ChemBERTa",
+                            show_download=False,
+                            download_key=f"chemberta_batch_download_{index}"
+                        )
                     
                     # Attention visualization for batch analysis
                     if attention_weights is not None and tokens is not None:
@@ -591,37 +614,29 @@ def sdf_file_prediction(file):
                             # Display individual results with attention visualization
                             st.markdown(f"### 🧬 Molecule {i + 1}")
                             
-                            col1, col2 = st.columns([1, 2])
+                            col1, col2 = st.columns([1, 1.2])
                             
                             with col1:
+                                st.markdown("""
+                                <div class="molecule-display">
+                                """, unsafe_allow_html=True)
+                                
                                 st.image(Draw.MolToImage(mol_pred, size=(120, 100), kekulize=True, wedgeBonds=True), use_column_width=True)
                                 st.code(smiles, language="text")
-                            
-                            with col2:
-                                activity_status = 'Active' if classification_prediction == 1 else 'Inactive'
                                 
-                                st.markdown(f"""
-                                <div class="prediction-card">
-                                    <div class="prediction-header">
-                                        <span class="prediction-icon">🧠</span>
-                                        <span class="prediction-title">ChemBERTa Prediction</span>
-                                    </div>
-                                    <div class="prediction-content">
-                                        <div class="metric-row">
-                                            <span class="metric-label">Activity</span>
-                                            <span class="status-badge status-{activity_status.lower()}">{activity_status}</span>
-                                        </div>
-                                        <div class="metric-row">
-                                            <span class="metric-label">Confidence</span>
-                                            <span class="metric-value">{classification_probability:.1%}</span>
-                                        </div>
-                                        <div class="metric-row">
-                                            <span class="metric-label">Target</span>
-                                            <span class="metric-value">AChE</span>
-                                        </div>
-                                    </div>
+                                st.markdown("""
                                 </div>
                                 """, unsafe_allow_html=True)
+                            
+                            with col2:
+                                # Use standardized prediction display
+                                display_prediction_results(
+                                    classification_prediction=classification_prediction,
+                                    classification_probability=classification_probability,
+                                    method_name="ChemBERTa",
+                                    show_download=False,
+                                    download_key=f"chemberta_sdf_download_{i}"
+                                )
                             
                             # Attention visualization for SDF batch analysis
                             if attention_weights is not None and tokens is not None:
