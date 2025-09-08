@@ -321,7 +321,7 @@ def handle_drawing_input():
     st.markdown("### 🎨 Draw Molecule")
     
     # Ketcher molecule editor first
-    smile_code = st_ketcher("")
+    smile_code = st_ketcher("", key="chemberta_ketcher_draw")
     
     # Show generated SMILES
     if smile_code:
@@ -329,7 +329,7 @@ def handle_drawing_input():
         st.code(smile_code)
     
     # Create prediction button
-    predict_button = st.button('🔍 Predict', type="primary", key="draw_predict_btn")
+    predict_button = st.button('🔍 Predict', type="primary", key="chemberta_draw_predict_btn")
 
     if predict_button:
         if smile_code:
@@ -337,37 +337,6 @@ def handle_drawing_input():
                 mol, classification_prediction, classification_probability, attention_weights, tokens = single_input_prediction(smile_code)
             
             if mol is not None:
-                # iOS-style metric cards
-                col1, col2, col3 = st.columns(3)
-                
-                with col1:
-                    activity_status = 'Active' if classification_prediction == 1 else 'Inactive'
-                    activity_color = '#34C759' if classification_prediction == 1 else '#FF3B30'
-                    st.markdown(f"""
-                    <div class="ios-card" style="background: {activity_color};">
-                        <div class="card-value">{activity_status}</div>
-                        <div class="card-label">Activity Status</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col2:
-                    st.markdown(f"""
-                    <div class="ios-card" style="background: #007AFF;">
-                        <div class="card-value">{classification_probability:.1%}</div>
-                        <div class="card-label">Confidence</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col3:
-                    st.markdown(f"""
-                    <div class="ios-card" style="background: #5856D6;">
-                        <div class="card-value">ChemBERTa</div>
-                        <div class="card-label">AI Model</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                st.markdown("<br>", unsafe_allow_html=True)
-                
                 # Results layout
                 col1, col2 = st.columns([1, 2])
                 
@@ -381,14 +350,27 @@ def handle_drawing_input():
                     st.markdown("**📊 Prediction Results**")
                     
                     activity_status = 'Active' if classification_prediction == 1 else 'Inactive'
-                    activity_color = '#34C759' if classification_prediction == 1 else '#FF3B30'
                     
                     st.markdown(f"""
-                    <div class="result-box" style="border-left: 4px solid {activity_color};">
-                        <h4 style="color: {activity_color}; margin: 0 0 10px 0;">🎯 Prediction: {activity_status}</h4>
-                        <p style="margin: 5px 0;"><strong>Confidence Score:</strong> {classification_probability:.1%}</p>
-                        <p style="margin: 5px 0;"><strong>Model Type:</strong> ChemBERTa Transformer</p>
-                        <p style="margin: 5px 0;"><strong>Target:</strong> Acetylcholinesterase</p>
+                    <div class="prediction-card">
+                        <div class="prediction-header">
+                            <span class="prediction-icon">🧠</span>
+                            <span class="prediction-title">ChemBERTa Prediction</span>
+                        </div>
+                        <div class="prediction-content">
+                            <div class="metric-row">
+                                <span class="metric-label">Activity</span>
+                                <span class="status-badge status-{activity_status.lower()}">{activity_status}</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Confidence</span>
+                                <span class="metric-value">{classification_probability:.1%}</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Target</span>
+                                <span class="metric-value">AChE</span>
+                            </div>
+                        </div>
                     </div>
                     """, unsafe_allow_html=True)
                 
@@ -411,48 +393,17 @@ def handle_smiles_input():
     col1, col2 = st.columns([3, 1])
     
     with col1:
-        single_input = st.text_input('SMILES', placeholder="CCO", key="single_smiles_input")
+        single_input = st.text_input('SMILES', placeholder="CCO", key="chemberta_single_smiles_input")
     
     with col2:
         st.markdown("<br>", unsafe_allow_html=True)
-        predict_button = st.button('🔍 Predict', type="primary", key="smiles_predict_btn")
+        predict_button = st.button('🔍 Predict', type="primary", key="chemberta_smiles_predict_btn")
     
     if predict_button and single_input:
         with st.spinner('🧬 Analyzing molecular properties...'):
             mol, classification_prediction, classification_probability, attention_weights, tokens = single_input_prediction(single_input)
             
         if mol is not None:
-            # iOS-style metric cards
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                activity_status = 'Active' if classification_prediction == 1 else 'Inactive'
-                activity_color = '#34C759' if classification_prediction == 1 else '#FF3B30'
-                st.markdown(f"""
-                <div class="ios-card" style="background: {activity_color};">
-                    <div class="card-value">{activity_status}</div>
-                    <div class="card-label">Activity Status</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with col2:
-                st.markdown(f"""
-                <div class="ios-card" style="background: #007AFF;">
-                    <div class="card-value">{classification_probability:.1%}</div>
-                    <div class="card-label">Confidence</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with col3:
-                st.markdown(f"""
-                <div class="ios-card" style="background: #5856D6;">
-                    <div class="card-value">ChemBERTa</div>
-                    <div class="card-label">AI Model</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            
             # Results layout
             col1, col2 = st.columns([1, 2])
             
@@ -466,14 +417,27 @@ def handle_smiles_input():
                 st.markdown("**📊 Prediction Results**")
                 
                 activity_status = 'Active' if classification_prediction == 1 else 'Inactive'
-                activity_color = '#34C759' if classification_prediction == 1 else '#FF3B30'
                 
                 st.markdown(f"""
-                <div class="result-box" style="border-left: 4px solid {activity_color};">
-                    <h4 style="color: {activity_color}; margin: 0 0 10px 0;">🎯 Prediction: {activity_status}</h4>
-                    <p style="margin: 5px 0;"><strong>Confidence Score:</strong> {classification_probability:.1%}</p>
-                    <p style="margin: 5px 0;"><strong>Model Type:</strong> ChemBERTa Transformer</p>
-                    <p style="margin: 5px 0;"><strong>Target:</strong> Acetylcholinesterase</p>
+                <div class="prediction-card">
+                    <div class="prediction-header">
+                        <span class="prediction-icon">🧠</span>
+                        <span class="prediction-title">ChemBERTa Prediction</span>
+                    </div>
+                    <div class="prediction-content">
+                        <div class="metric-row">
+                            <span class="metric-label">Activity</span>
+                            <span class="status-badge status-{activity_status.lower()}">{activity_status}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Confidence</span>
+                            <span class="metric-value">{classification_probability:.1%}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Target</span>
+                            <span class="metric-value">AChE</span>
+                        </div>
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
             
@@ -487,16 +451,6 @@ def handle_smiles_input():
 
 # Function to handle the home page
 def handle_home_page():
-    st.markdown("""
-    <div class="welcome-card">
-        <h1 style="text-align: center; color: #1D1D1F; font-weight: 600; margin-bottom: 8px;">
-            🧪 ChemBERTa AChE Predictor
-        </h1>
-        <p style="text-align: center; font-size: 17px; color: #86868B; margin-bottom: 0;">
-            AI-powered acetylcholinesterase inhibitory activity prediction
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
     
     # Feature overview
     col1, col2 = st.columns(2)
@@ -559,13 +513,27 @@ def excel_file_prediction(file, smiles_column):
                     
                     with col2:
                         activity_status = 'Active' if classification_prediction == 1 else 'Inactive'
-                        activity_color = '#4CAF50' if classification_prediction == 1 else '#f44336'
                         
                         st.markdown(f"""
-                        <div style="background: linear-gradient(135deg, {activity_color}20, {activity_color}10); 
-                                    padding: 1rem; border-radius: 10px; border-left: 4px solid {activity_color};">
-                            <h4 style="color: {activity_color}; margin: 0;">🎯 {activity_status}</h4>
-                            <p style="margin: 0.5rem 0;"><strong>Confidence:</strong> {classification_probability:.1%}</p>
+                        <div class="prediction-card">
+                            <div class="prediction-header">
+                                <span class="prediction-icon">🧠</span>
+                                <span class="prediction-title">ChemBERTa Prediction</span>
+                            </div>
+                            <div class="prediction-content">
+                                <div class="metric-row">
+                                    <span class="metric-label">Activity</span>
+                                    <span class="status-badge status-{activity_status.lower()}">{activity_status}</span>
+                                </div>
+                                <div class="metric-row">
+                                    <span class="metric-label">Confidence</span>
+                                    <span class="metric-value">{classification_probability:.1%}</span>
+                                </div>
+                                <div class="metric-row">
+                                    <span class="metric-label">Target</span>
+                                    <span class="metric-value">AChE</span>
+                                </div>
+                            </div>
                         </div>
                         """, unsafe_allow_html=True)
                     
@@ -631,13 +599,27 @@ def sdf_file_prediction(file):
                             
                             with col2:
                                 activity_status = 'Active' if classification_prediction == 1 else 'Inactive'
-                                activity_color = '#4CAF50' if classification_prediction == 1 else '#f44336'
                                 
                                 st.markdown(f"""
-                                <div style="background: linear-gradient(135deg, {activity_color}20, {activity_color}10); 
-                                            padding: 1rem; border-radius: 10px; border-left: 4px solid {activity_color};">
-                                    <h4 style="color: {activity_color}; margin: 0;">🎯 {activity_status}</h4>
-                                    <p style="margin: 0.5rem 0;"><strong>Confidence:</strong> {classification_probability:.1%}</p>
+                                <div class="prediction-card">
+                                    <div class="prediction-header">
+                                        <span class="prediction-icon">🧠</span>
+                                        <span class="prediction-title">ChemBERTa Prediction</span>
+                                    </div>
+                                    <div class="prediction-content">
+                                        <div class="metric-row">
+                                            <span class="metric-label">Activity</span>
+                                            <span class="status-badge status-{activity_status.lower()}">{activity_status}</span>
+                                        </div>
+                                        <div class="metric-row">
+                                            <span class="metric-label">Confidence</span>
+                                            <span class="metric-value">{classification_probability:.1%}</span>
+                                        </div>
+                                        <div class="metric-row">
+                                            <span class="metric-label">Target</span>
+                                            <span class="metric-value">AChE</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 """, unsafe_allow_html=True)
                             
@@ -964,13 +946,6 @@ if __name__ == '__main__':
     </style>
     """, unsafe_allow_html=True)
     
-    # Navigation Header
-    st.markdown("""
-    <div class="nav-header">
-        <div class="nav-title">🧪 ChemBERTa AChE Predictor</div>
-    </div>
-    """, unsafe_allow_html=True)
-    
     # Enhanced Navigation Tabs with proper spacing
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "🏠 Home", 
@@ -993,9 +968,9 @@ if __name__ == '__main__':
         st.markdown("### 📄 SDF File Upload")
         st.markdown("Upload an SDF file containing molecular structures for batch prediction")
         
-        uploaded_sdf_file = st.file_uploader("SDF File", type=['sdf'], key="sdf_file_uploader")
+        uploaded_sdf_file = st.file_uploader("SDF File", type=['sdf'], key="chemberta_sdf_file_uploader")
         
-        if st.button('🔍 Predict SDF', type="primary", key="sdf_predict_button"):
+        if st.button('🔍 Predict SDF', type="primary", key="chemberta_sdf_predict_button"):
             if uploaded_sdf_file is not None:
                 with st.spinner('Processing SDF file...'):
                     sdf_file_prediction(uploaded_sdf_file)
@@ -1006,7 +981,7 @@ if __name__ == '__main__':
         st.markdown("### 📊 Excel File Batch Prediction")
         st.markdown("Upload an Excel file with SMILES strings for high-throughput screening")
         
-        uploaded_excel_file = st.file_uploader("Excel File", type=['xlsx'], key="excel_file_uploader")
+        uploaded_excel_file = st.file_uploader("Excel File", type=['xlsx'], key="chemberta_excel_file_uploader")
         
         if uploaded_excel_file is not None:
             # Load and preview the file
@@ -1021,7 +996,7 @@ if __name__ == '__main__':
                 help="Choose the column that contains your molecular SMILES strings"
             )
             
-            if st.button('🔍 Predict Excel', type="primary", key="excel_predict_button"):
+            if st.button('🔍 Predict Excel', type="primary", key="chemberta_excel_predict_button"):
                 with st.spinner('Processing Excel file...'):
                     excel_file_prediction(uploaded_excel_file, smiles_column)
         else:

@@ -175,7 +175,7 @@ def handle_drawing_input(explainer, selected_descriptors):
     st.markdown("### 🎨 Draw Molecule")
     
     # Ketcher molecule editor first
-    smile_code = st_ketcher("")
+    smile_code = st_ketcher("", key="rdkit_ketcher_draw")
     
     # Show generated SMILES
     if smile_code:
@@ -183,7 +183,7 @@ def handle_drawing_input(explainer, selected_descriptors):
         st.code(smile_code)
     
     # Create prediction button
-    predict_button = st.button('🔍 Predict', type="primary", key="draw_predict_btn")
+    predict_button = st.button('🔍 Predict', type="primary", key="rdkit_draw_predict_btn")
 
     if predict_button:
         if smile_code:
@@ -191,36 +191,6 @@ def handle_drawing_input(explainer, selected_descriptors):
                 mol, classification_prediction, classification_probability, regression_prediction, descriptor_df, explanation = single_input_prediction(smile_code, selected_descriptors, explainer)
                 
             if mol is not None:
-                # Metric cards
-                col1, col2, col3 = st.columns(3)
-                
-                with col1:
-                    activity_status = 'Potent' if classification_prediction == 1 else 'Not Potent'
-                    activity_color = '#4CAF50' if classification_prediction == 1 else '#f44336'
-                    st.markdown(f"""
-                    <div class="metric-card" style="background: {activity_color};">
-                        <div class="metric-value">{activity_status}</div>
-                        <div class="metric-label">Activity</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col2:
-                    st.markdown(f"""
-                    <div class="metric-card" style="background: #2196F3;">
-                        <div class="metric-value">{classification_probability:.1%}</div>
-                        <div class="metric-label">Confidence</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col3:
-                    ic50_value = 10**(regression_prediction)
-                    st.markdown(f"""
-                    <div class="metric-card" style="background: #9C27B0;">
-                        <div class="metric-value">{ic50_value:.1f} nM</div>
-                        <div class="metric-label">IC50</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
                 # Results layout - emphasis on prediction results
                 col1, col2 = st.columns([1, 2])
                 
@@ -236,17 +206,31 @@ def handle_drawing_input(explainer, selected_descriptors):
                 with col2:
                     st.markdown("### 📊 Prediction Results")
                     
-                    # Prediction summary in a highlighted box
+                    # iOS-style compact prediction card
                     activity_status = 'Potent' if classification_prediction == 1 else 'Not Potent'
                     activity_color = '#4CAF50' if classification_prediction == 1 else '#f44336'
                     ic50_value = 10**(regression_prediction)
                     
                     st.markdown(f"""
-                    <div style="background: linear-gradient(135deg, {activity_color}20, {activity_color}10); 
-                                padding: 1rem; border-radius: 10px; border-left: 4px solid {activity_color};">
-                        <h4 style="color: {activity_color}; margin: 0;">🎯 {activity_status}</h4>
-                        <p style="margin: 0.5rem 0;"><strong>Confidence:</strong> {classification_probability:.1%}</p>
-                        <p style="margin: 0.5rem 0;"><strong>IC50:</strong> {ic50_value:.1f} nM</p>
+                    <div class="prediction-card">
+                        <div class="prediction-header">
+                            <span class="prediction-icon">🎯</span>
+                            <span class="prediction-title">RDKit Prediction</span>
+                        </div>
+                        <div class="prediction-content">
+                            <div class="metric-row">
+                                <span class="metric-label">Activity</span>
+                                <span class="status-badge status-{activity_status.lower().replace(' ', '-')}">{activity_status}</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Confidence</span>
+                                <span class="metric-value">{classification_probability:.1%}</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">IC50</span>
+                                <span class="metric-value">{ic50_value:.1f} nM</span>
+                            </div>
+                        </div>
                     </div>
                     """, unsafe_allow_html=True)
                     
@@ -257,7 +241,7 @@ def handle_drawing_input(explainer, selected_descriptors):
                         data=explanation.as_html(),
                         file_name='explanation.html',
                         mime='text/html',
-                        key="draw_download",
+                        key="rdkit_draw_download",
                         type="primary"
                     )
                 
@@ -275,11 +259,11 @@ def handle_smiles_input(explainer, selected_descriptors):
     col1, col2 = st.columns([3, 1])
     
     with col1:
-        single_input = st.text_input('SMILES', placeholder="CCO", key="single_smiles_input")
+        single_input = st.text_input('SMILES', placeholder="CCO", key="rdkit_single_smiles_input")
     
     with col2:
         st.markdown("<br>", unsafe_allow_html=True)
-        predict_button = st.button('🔍 Predict', type="primary", key="smiles_predict_btn")
+        predict_button = st.button('🔍 Predict', type="primary", key="rdkit_smiles_predict_btn")
     
     if predict_button and single_input:
         with st.spinner('🧬 Analyzing molecular properties...'):
@@ -288,38 +272,6 @@ def handle_smiles_input(explainer, selected_descriptors):
         if mol is not None:
             # Display results in beautiful cards
             st.markdown("## 📊 Prediction Results")
-            
-            # Create metric cards
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                activity_status = 'Potent' if classification_prediction == 1 else 'Not Potent'
-                activity_color = '#4CAF50' if classification_prediction == 1 else '#f44336'
-                st.markdown(f"""
-                <div class="metric-card" style="background: linear-gradient(135deg, {activity_color}, {activity_color}cc);">
-                    <div class="metric-value">{activity_status}</div>
-                    <div class="metric-label">Activity Prediction</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with col2:
-                st.markdown(f"""
-                <div class="metric-card" style="background: linear-gradient(135deg, #2196F3, #21CBF3);">
-                    <div class="metric-value">{classification_probability:.1%}</div>
-                    <div class="metric-label">Confidence Score</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with col3:
-                ic50_value = 10**(regression_prediction)
-                st.markdown(f"""
-                <div class="metric-card" style="background: linear-gradient(135deg, #9C27B0, #E91E63);">
-                    <div class="metric-value">{ic50_value:.1f} nM</div>
-                    <div class="metric-label">Predicted IC50</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            st.markdown("<br>", unsafe_allow_html=True)
             
             # Molecule structure and download section
             col1, col2 = st.columns([1, 2])
@@ -334,6 +286,33 @@ def handle_smiles_input(explainer, selected_descriptors):
                 st.code(single_input, language="text")
             
             with col2:
+                # iOS-style compact prediction card
+                activity_status = 'Potent' if classification_prediction == 1 else 'Not Potent'
+                ic50_value = 10**(regression_prediction)
+                
+                st.markdown(f"""
+                <div class="prediction-card">
+                    <div class="prediction-header">
+                        <span class="prediction-icon">🎯</span>
+                        <span class="prediction-title">RDKit Prediction</span>
+                    </div>
+                    <div class="prediction-content">
+                        <div class="metric-row">
+                            <span class="metric-label">Activity</span>
+                            <span class="status-badge status-{activity_status.lower().replace(' ', '-')}">{activity_status}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Confidence</span>
+                            <span class="metric-value">{classification_probability:.1%}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">IC50</span>
+                            <span class="metric-value">{ic50_value:.1f} nM</span>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
                 st.markdown("### 📈 LIME AI Explanation")
                 st.markdown("The LIME explanation shows which molecular features contribute most to the prediction:")
                 
@@ -343,7 +322,7 @@ def handle_smiles_input(explainer, selected_descriptors):
                     file_name='lime_explanation.html',
                     mime='text/html',
                     type="primary",
-                    key="smiles_download"
+                    key="rdkit_smiles_download"
                 )
                 
                 # Show simplified interpretation
@@ -364,14 +343,6 @@ def handle_smiles_input(explainer, selected_descriptors):
 
 # Function to handle the home page
 def handle_home_page():
-    st.markdown("""
-    <div class="result-card">
-        <p style="text-align: center; font-size: 1.1rem; color: #666;">
-            Predict acetylcholinesterase inhibitory activity from molecular structure
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
     # Feature overview
     col1, col2 = st.columns(2)
     
@@ -436,16 +407,30 @@ def excel_file_prediction(file, smiles_column, selected_descriptors, explainer):
                         st.code(smiles, language="text")
                     
                     with col2:
-                        # Prominent prediction results
-                        activity_color = "🟢" if classification_prediction == 1 else "🔴"
-                        status_color = '#4CAF50' if classification_prediction == 1 else '#f44336'
+                        # iOS-style compact prediction card
+                        activity_status = 'Potent' if classification_prediction == 1 else 'Not Potent'
+                        ic50_value = 10**(regression_prediction)
                         
                         st.markdown(f"""
-                        <div style="background: linear-gradient(135deg, {status_color}20, {status_color}10); 
-                                    padding: 1rem; border-radius: 10px; border-left: 4px solid {status_color};">
-                            <h4 style="color: {status_color}; margin: 0;">{activity_color} {'Potent' if classification_prediction == 1 else 'Not Potent'}</h4>
-                            <p style="margin: 0.5rem 0;"><strong>Confidence:</strong> {classification_probability:.1%}</p>
-                            <p style="margin: 0.5rem 0;"><strong>IC50:</strong> {10**(regression_prediction):.1f} nM</p>
+                        <div class="prediction-card">
+                            <div class="prediction-header">
+                                <span class="prediction-icon">🎯</span>
+                                <span class="prediction-title">RDKit Prediction</span>
+                            </div>
+                            <div class="prediction-content">
+                                <div class="metric-row">
+                                    <span class="metric-label">Activity</span>
+                                    <span class="status-badge status-{activity_status.lower().replace(' ', '-')}">{activity_status}</span>
+                                </div>
+                                <div class="metric-row">
+                                    <span class="metric-label">Confidence</span>
+                                    <span class="metric-value">{classification_probability:.1%}</span>
+                                </div>
+                                <div class="metric-row">
+                                    <span class="metric-label">IC50</span>
+                                    <span class="metric-value">{ic50_value:.1f} nM</span>
+                                </div>
+                            </div>
                         </div>
                         """, unsafe_allow_html=True)
                         
@@ -454,7 +439,7 @@ def excel_file_prediction(file, smiles_column, selected_descriptors, explainer):
                             data=explanation.as_html(),
                             file_name=f'lime_explanation_{index}.html',
                             mime='text/html',
-                            key=f"excel_download_{index}",
+                            key=f"rdkit_excel_download_{index}",
                             type="primary"
                         )
             
@@ -496,16 +481,30 @@ def sdf_file_prediction(file, selected_descriptors, explainer):
                             st.code(smiles, language="text")
                         
                         with col2:
-                            # Prominent prediction results
-                            activity_color = "🟢" if classification_prediction == 1 else "🔴"
-                            status_color = '#4CAF50' if classification_prediction == 1 else '#f44336'
+                            # iOS-style compact prediction card
+                            activity_status = 'Potent' if classification_prediction == 1 else 'Not Potent'
+                            ic50_value = 10**(regression_prediction)
                             
                             st.markdown(f"""
-                            <div style="background: linear-gradient(135deg, {status_color}20, {status_color}10); 
-                                        padding: 1rem; border-radius: 10px; border-left: 4px solid {status_color};">
-                                <h4 style="color: {status_color}; margin: 0;">{activity_color} {'Potent' if classification_prediction == 1 else 'Not Potent'}</h4>
-                                <p style="margin: 0.5rem 0;"><strong>Confidence:</strong> {classification_probability:.1%}</p>
-                                <p style="margin: 0.5rem 0;"><strong>IC50:</strong> {10**(regression_prediction):.1f} nM</p>
+                            <div class="prediction-card">
+                                <div class="prediction-header">
+                                    <span class="prediction-icon">🎯</span>
+                                    <span class="prediction-title">RDKit Prediction</span>
+                                </div>
+                                <div class="prediction-content">
+                                    <div class="metric-row">
+                                        <span class="metric-label">Activity</span>
+                                        <span class="status-badge status-{activity_status.lower().replace(' ', '-')}">{activity_status}</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span class="metric-label">Confidence</span>
+                                        <span class="metric-value">{classification_probability:.1%}</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span class="metric-label">IC50</span>
+                                        <span class="metric-value">{ic50_value:.1f} nM</span>
+                                    </div>
+                                </div>
                             </div>
                             """, unsafe_allow_html=True)
                             
@@ -514,7 +513,7 @@ def sdf_file_prediction(file, selected_descriptors, explainer):
                                 data=explanation.as_html(),
                                 file_name=f'lime_explanation_{idx}.html',
                                 mime='text/html',
-                                key=f"sdf_download_{idx}",
+                                key=f"rdkit_sdf_download_{idx}",
                                 type="primary"
                             )
                         
@@ -634,12 +633,6 @@ if __name__ == '__main__':
     """, unsafe_allow_html=True)
     
     # Navigation Header
-    st.markdown("""
-    <div class="nav-container">
-        <div class="nav-title">Molecular Prediction</div>
-    </div>
-    """, unsafe_allow_html=True)
-    
     # Horizontal Navigation Tabs
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "🏠 Home", 
@@ -1044,8 +1037,8 @@ if __name__ == '__main__':
 )
     
     with tab4:
-        uploaded_sdf_file = st.file_uploader("SDF File", type=['sdf'], key="tab_sdf_file_uploader")
-        if st.button('🔍 Predict', key="sdf_predict_btn"):
+        uploaded_sdf_file = st.file_uploader("SDF File", type=['sdf'], key="rdkit_tab_sdf_file_uploader")
+        if st.button('🔍 Predict', key="rdkit_sdf_predict_btn"):
             if uploaded_sdf_file is not None:
                 selected_descriptors = ['MaxEStateIndex', 'MinEStateIndex', 'MaxAbsEStateIndex', 'MinAbsEStateIndex', 'qed', 'MolWt', 'HeavyAtomMolWt', 'ExactMolWt', 'NumValenceElectrons', 'FpDensityMorgan1', 'FpDensityMorgan2', 'FpDensityMorgan3', 'BalabanJ', 'BertzCT', 'Chi0', 'Chi0n', 'Chi0v', 'Chi1', 'Chi1n', 'Chi1v', 'Chi2n', 'Chi2v', 'Chi3n', 'Chi3v', 'Chi4n', 'Chi4v', 'HallKierAlpha', 'Ipc', 'Kappa1', 'Kappa2', 'Kappa3', 'LabuteASA', 'PEOE_VSA1', 'PEOE_VSA10', 'PEOE_VSA11', 'PEOE_VSA12', 'PEOE_VSA13', 'PEOE_VSA14', 'PEOE_VSA2', 'PEOE_VSA3', 'PEOE_VSA4', 'PEOE_VSA5', 'PEOE_VSA6', 'PEOE_VSA7', 'PEOE_VSA8', 'PEOE_VSA9', 'SMR_VSA1', 'SMR_VSA10', 'SMR_VSA2', 'SMR_VSA3', 'SMR_VSA4', 'SMR_VSA5', 'SMR_VSA6', 'SMR_VSA7', 'SMR_VSA9', 'SlogP_VSA1', 'SlogP_VSA10', 'SlogP_VSA11', 'SlogP_VSA12', 'SlogP_VSA2', 'SlogP_VSA3', 'SlogP_VSA4', 'SlogP_VSA5', 'SlogP_VSA6', 'SlogP_VSA7', 'SlogP_VSA8', 'TPSA', 'EState_VSA1', 'EState_VSA10', 'EState_VSA11', 'EState_VSA2', 'EState_VSA3', 'EState_VSA4', 'EState_VSA5', 'EState_VSA6', 'EState_VSA7', 'EState_VSA8', 'EState_VSA9', 'VSA_EState1', 'VSA_EState10', 'VSA_EState2', 'VSA_EState3', 'VSA_EState4', 'VSA_EState5', 'VSA_EState6', 'VSA_EState7', 'VSA_EState8', 'VSA_EState9', 'FractionCSP3', 'HeavyAtomCount', 'NHOHCount', 'NOCount', 'NumAliphaticCarbocycles', 'NumAliphaticHeterocycles', 'NumAliphaticRings', 'NumAromaticCarbocycles', 'NumAromaticHeterocycles', 'NumAromaticRings', 'NumHAcceptors', 'NumHDonors', 'NumHeteroatoms', 'NumRotatableBonds', 'NumSaturatedCarbocycles', 'NumSaturatedHeterocycles', 'NumSaturatedRings', 'RingCount', 'MolLogP', 'MolMR', 'fr_Al_COO', 'fr_Al_OH', 'fr_Al_OH_noTert', 'fr_ArN', 'fr_Ar_COO', 'fr_Ar_N', 'fr_Ar_NH', 'fr_Ar_OH', 'fr_COO', 'fr_COO2', 'fr_C_O', 'fr_C_O_noCOO', 'fr_C_S', 'fr_HOCCN', 'fr_Imine', 'fr_NH0', 'fr_NH1', 'fr_NH2', 'fr_N_O', 'fr_Ndealkylation1', 'fr_Ndealkylation2', 'fr_Nhpyrrole', 'fr_SH', 'fr_aldehyde', 'fr_alkyl_carbamate', 'fr_alkyl_halide', 'fr_allylic_oxid', 'fr_amide', 'fr_amidine', 'fr_aniline', 'fr_aryl_methyl', 'fr_azide', 'fr_benzene', 'fr_bicyclic', 'fr_dihydropyridine', 'fr_epoxide', 'fr_ester', 'fr_ether', 'fr_furan', 'fr_guanido', 'fr_halogen', 'fr_hdrzine', 'fr_hdrzone', 'fr_imidazole', 'fr_imide', 'fr_ketone', 'fr_ketone_Topliss', 'fr_lactam', 'fr_lactone', 'fr_methoxy', 'fr_morpholine', 'fr_nitrile', 'fr_nitro', 'fr_nitro_arom', 'fr_nitro_arom_nonortho', 'fr_oxazole', 'fr_oxime', 'fr_para_hydroxylation', 'fr_phenol', 'fr_phenol_noOrthoHbond', 'fr_phos_acid', 'fr_phos_ester', 'fr_piperdine', 'fr_piperzine', 'fr_priamide', 'fr_pyridine', 'fr_quatN', 'fr_sulfide', 'fr_sulfonamd', 'fr_sulfone', 'fr_term_acetylene', 'fr_tetrazole', 'fr_thiazole', 'fr_thiophene', 'fr_unbrch_alkane', 'fr_urea']
                 sdf_file_prediction(uploaded_sdf_file, selected_descriptors, explainer)
@@ -1053,7 +1046,7 @@ if __name__ == '__main__':
                 st.error("Please upload an SDF file first.")
     
     with tab5:
-        uploaded_excel_file = st.file_uploader("Excel File", type=['xlsx'], key="tab_excel_file_uploader")
+        uploaded_excel_file = st.file_uploader("Excel File", type=['xlsx'], key="rdkit_tab_excel_file_uploader")
         
         smiles_column = None
         # Show preview of uploaded file and column selector
@@ -1068,7 +1061,7 @@ if __name__ == '__main__':
                 smiles_column = st.selectbox(
                     "Choose SMILES Column:", 
                     options=column_options,
-                    key="excel_smiles_column_dropdown"
+                    key="rdkit_excel_smiles_column_dropdown"
                 )
                 if smiles_column == "Select SMILES column...":
                     smiles_column = None
@@ -1078,7 +1071,7 @@ if __name__ == '__main__':
         else:
             st.info("Upload an Excel file to see available columns")
         
-        if st.button('🔍 Predict', key="excel_predict_btn"):
+        if st.button('🔍 Predict', key="rdkit_excel_predict_btn"):
             if uploaded_excel_file is not None and smiles_column:
                 selected_descriptors = ['MaxEStateIndex', 'MinEStateIndex', 'MaxAbsEStateIndex', 'MinAbsEStateIndex', 'qed', 'MolWt', 'HeavyAtomMolWt', 'ExactMolWt', 'NumValenceElectrons', 'FpDensityMorgan1', 'FpDensityMorgan2', 'FpDensityMorgan3', 'BalabanJ', 'BertzCT', 'Chi0', 'Chi0n', 'Chi0v', 'Chi1', 'Chi1n', 'Chi1v', 'Chi2n', 'Chi2v', 'Chi3n', 'Chi3v', 'Chi4n', 'Chi4v', 'HallKierAlpha', 'Ipc', 'Kappa1', 'Kappa2', 'Kappa3', 'LabuteASA', 'PEOE_VSA1', 'PEOE_VSA10', 'PEOE_VSA11', 'PEOE_VSA12', 'PEOE_VSA13', 'PEOE_VSA14', 'PEOE_VSA2', 'PEOE_VSA3', 'PEOE_VSA4', 'PEOE_VSA5', 'PEOE_VSA6', 'PEOE_VSA7', 'PEOE_VSA8', 'PEOE_VSA9', 'SMR_VSA1', 'SMR_VSA10', 'SMR_VSA2', 'SMR_VSA3', 'SMR_VSA4', 'SMR_VSA5', 'SMR_VSA6', 'SMR_VSA7', 'SMR_VSA9', 'SlogP_VSA1', 'SlogP_VSA10', 'SlogP_VSA11', 'SlogP_VSA12', 'SlogP_VSA2', 'SlogP_VSA3', 'SlogP_VSA4', 'SlogP_VSA5', 'SlogP_VSA6', 'SlogP_VSA7', 'SlogP_VSA8', 'TPSA', 'EState_VSA1', 'EState_VSA10', 'EState_VSA11', 'EState_VSA2', 'EState_VSA3', 'EState_VSA4', 'EState_VSA5', 'EState_VSA6', 'EState_VSA7', 'EState_VSA8', 'EState_VSA9', 'VSA_EState1', 'VSA_EState10', 'VSA_EState2', 'VSA_EState3', 'VSA_EState4', 'VSA_EState5', 'VSA_EState6', 'VSA_EState7', 'VSA_EState8', 'VSA_EState9', 'FractionCSP3', 'HeavyAtomCount', 'NHOHCount', 'NOCount', 'NumAliphaticCarbocycles', 'NumAliphaticHeterocycles', 'NumAliphaticRings', 'NumAromaticCarbocycles', 'NumAromaticHeterocycles', 'NumAromaticRings', 'NumHAcceptors', 'NumHDonors', 'NumHeteroatoms', 'NumRotatableBonds', 'NumSaturatedCarbocycles', 'NumSaturatedHeterocycles', 'NumSaturatedRings', 'RingCount', 'MolLogP', 'MolMR', 'fr_Al_COO', 'fr_Al_OH', 'fr_Al_OH_noTert', 'fr_ArN', 'fr_Ar_COO', 'fr_Ar_N', 'fr_Ar_NH', 'fr_Ar_OH', 'fr_COO', 'fr_COO2', 'fr_C_O', 'fr_C_O_noCOO', 'fr_C_S', 'fr_HOCCN', 'fr_Imine', 'fr_NH0', 'fr_NH1', 'fr_NH2', 'fr_N_O', 'fr_Ndealkylation1', 'fr_Ndealkylation2', 'fr_Nhpyrrole', 'fr_SH', 'fr_aldehyde', 'fr_alkyl_carbamate', 'fr_alkyl_halide', 'fr_allylic_oxid', 'fr_amide', 'fr_amidine', 'fr_aniline', 'fr_aryl_methyl', 'fr_azide', 'fr_benzene', 'fr_bicyclic', 'fr_dihydropyridine', 'fr_epoxide', 'fr_ester', 'fr_ether', 'fr_furan', 'fr_guanido', 'fr_halogen', 'fr_hdrzine', 'fr_hdrzone', 'fr_imidazole', 'fr_imide', 'fr_ketone', 'fr_ketone_Topliss', 'fr_lactam', 'fr_lactone', 'fr_methoxy', 'fr_morpholine', 'fr_nitrile', 'fr_nitro', 'fr_nitro_arom', 'fr_nitro_arom_nonortho', 'fr_oxazole', 'fr_oxime', 'fr_para_hydroxylation', 'fr_phenol', 'fr_phenol_noOrthoHbond', 'fr_phos_acid', 'fr_phos_ester', 'fr_piperdine', 'fr_piperzine', 'fr_priamide', 'fr_pyridine', 'fr_quatN', 'fr_sulfide', 'fr_sulfonamd', 'fr_sulfone', 'fr_term_acetylene', 'fr_tetrazole', 'fr_thiazole', 'fr_thiophene', 'fr_unbrch_alkane', 'fr_urea']
                 excel_file_prediction(uploaded_excel_file, smiles_column, selected_descriptors, explainer)

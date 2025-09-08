@@ -527,7 +527,7 @@ def handle_drawing_input():
     st.markdown("### 🎨 Draw Molecule")
     
     # Ketcher molecule editor first
-    smile_code = st_ketcher("")
+    smile_code = st_ketcher("", key="graph_ketcher_draw")
     
     # Show generated SMILES
     if smile_code:
@@ -535,7 +535,7 @@ def handle_drawing_input():
         st.code(smile_code)
     
     # Create prediction button
-    predict_button = st.button('🔍 Predict', type="primary", key="draw_predict_btn")
+    predict_button = st.button('🔍 Predict', type="primary", key="graph_draw_predict_btn")
 
     if predict_button:
         if smile_code:
@@ -545,35 +545,6 @@ def handle_drawing_input():
             if error:
                 st.error(f"Prediction error: {error}")
             elif mol is not None:
-                # Metric cards
-                col1, col2, col3 = st.columns(3)
-                
-                with col1:
-                    activity_status = 'Potent' if class_prob > 0.5 else 'Not Potent'
-                    activity_color = '#4CAF50' if class_prob > 0.5 else '#f44336'
-                    st.markdown(f"""
-                    <div class="metric-card" style="background: {activity_color};">
-                        <div class="metric-value">{activity_status}</div>
-                        <div class="metric-label">Activity</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col2:
-                    st.markdown(f"""
-                    <div class="metric-card" style="background: #2196F3;">
-                        <div class="metric-value">{class_prob:.1%}</div>
-                        <div class="metric-label">Confidence</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col3:
-                    st.markdown(f"""
-                    <div class="metric-card" style="background: #9C27B0;">
-                        <div class="metric-value">{reg_value:.1f} nM</div>
-                        <div class="metric-label">IC50</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
                 # Results layout
                 col1, col2 = st.columns([1, 2])
                 
@@ -586,16 +557,29 @@ def handle_drawing_input():
                 with col2:
                     st.markdown("### 📊 Prediction Results")
                     
-                    # Prediction summary
+                    # iOS-style compact prediction card
                     activity_status = 'Potent' if class_prob > 0.5 else 'Not Potent'
-                    activity_color = '#4CAF50' if class_prob > 0.5 else '#f44336'
                     
                     st.markdown(f"""
-                    <div style="background: linear-gradient(135deg, {activity_color}20, {activity_color}10); 
-                                padding: 1rem; border-radius: 10px; border-left: 4px solid {activity_color};">
-                        <h4 style="color: {activity_color}; margin: 0;">🎯 {activity_status}</h4>
-                        <p style="margin: 0.5rem 0;"><strong>Confidence:</strong> {class_prob:.1%}</p>
-                        <p style="margin: 0.5rem 0;"><strong>IC50:</strong> {reg_value:.1f} nM</p>
+                    <div class="prediction-card">
+                        <div class="prediction-header">
+                            <span class="prediction-icon">📊</span>
+                            <span class="prediction-title">Graph NN Prediction</span>
+                        </div>
+                        <div class="prediction-content">
+                            <div class="metric-row">
+                                <span class="metric-label">Activity</span>
+                                <span class="status-badge status-{activity_status.lower().replace(' ', '-')}">{activity_status}</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">Confidence</span>
+                                <span class="metric-value">{class_prob:.1%}</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">IC50</span>
+                                <span class="metric-value">{reg_value:.1f} nM</span>
+                            </div>
+                        </div>
                     </div>
                     """, unsafe_allow_html=True)
                 
@@ -654,11 +638,11 @@ def handle_smiles_input():
     col1, col2 = st.columns([3, 1])
     
     with col1:
-        single_input = st.text_input('SMILES', placeholder="CCO", key="single_smiles_input")
+        single_input = st.text_input('SMILES', placeholder="CCO", key="graph_single_smiles_input")
     
     with col2:
         st.markdown("<br>", unsafe_allow_html=True)
-        predict_button = st.button('🔍 Predict', type="primary", key="smiles_predict_btn")
+        predict_button = st.button('🔍 Predict', type="primary", key="graph_smiles_predict_btn")
     
     if predict_button and single_input:
         with st.spinner('🧬 Analyzing molecular properties...'):
@@ -670,37 +654,6 @@ def handle_smiles_input():
             # Display results in beautiful cards
             st.markdown("## 📊 Prediction Results")
             
-            # Create metric cards
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                activity_status = 'Potent' if class_prob > 0.5 else 'Not Potent'
-                activity_color = '#4CAF50' if class_prob > 0.5 else '#f44336'
-                st.markdown(f"""
-                <div class="metric-card" style="background: linear-gradient(135deg, {activity_color}, {activity_color}cc);">
-                    <div class="metric-value">{activity_status}</div>
-                    <div class="metric-label">Activity Prediction</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with col2:
-                st.markdown(f"""
-                <div class="metric-card" style="background: linear-gradient(135deg, #2196F3, #21CBF3);">
-                    <div class="metric-value">{class_prob:.1%}</div>
-                    <div class="metric-label">Confidence Score</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with col3:
-                st.markdown(f"""
-                <div class="metric-card" style="background: linear-gradient(135deg, #9C27B0, #E91E63);">
-                    <div class="metric-value">{reg_value:.1f} nM</div>
-                    <div class="metric-label">Predicted IC50</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            
             # Molecule structure and results section
             col1, col2 = st.columns([1, 2])
             
@@ -711,6 +664,32 @@ def handle_smiles_input():
                 st.code(single_input, language="text")
             
             with col2:
+                # iOS-style compact prediction card
+                activity_status = 'Potent' if class_prob > 0.5 else 'Not Potent'
+                
+                st.markdown(f"""
+                <div class="prediction-card">
+                    <div class="prediction-header">
+                        <span class="prediction-icon">📊</span>
+                        <span class="prediction-title">Graph NN Prediction</span>
+                    </div>
+                    <div class="prediction-content">
+                        <div class="metric-row">
+                            <span class="metric-label">Activity</span>
+                            <span class="status-badge status-{activity_status.lower().replace(' ', '-')}">{activity_status}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Confidence</span>
+                            <span class="metric-value">{class_prob:.1%}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">IC50</span>
+                            <span class="metric-value">{reg_value:.1f} nM</span>
+                        </div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                
                 st.markdown("### 📈 Graph Neural Network Analysis")
                 st.markdown("AI analysis using graph convolutional networks for molecular property prediction:")
                 
@@ -875,14 +854,6 @@ def handle_smiles_input():
 
 # Function to handle the home page
 def handle_home_page():
-    st.markdown("""
-    <div class="result-card">
-        <p style="text-align: center; font-size: 1.1rem; color: #666;">
-            Predict acetylcholinesterase inhibitory activity using Graph Neural Networks
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
     # Feature overview
     col1, col2 = st.columns(2)
     
@@ -948,16 +919,29 @@ def excel_file_prediction(file, smiles_column):
                         st.code(smiles, language="text")
                     
                     with col2:
-                        # Prominent prediction results
-                        activity_color = "🟢" if class_prob > 0.5 else "🔴"
-                        status_color = '#4CAF50' if class_prob > 0.5 else '#f44336'
+                        # iOS-style compact prediction card
+                        activity_status = 'Potent' if class_prob > 0.5 else 'Not Potent'
                         
                         st.markdown(f"""
-                        <div style="background: linear-gradient(135deg, {status_color}20, {status_color}10); 
-                                    padding: 1rem; border-radius: 10px; border-left: 4px solid {status_color};">
-                            <h4 style="color: {status_color}; margin: 0;">{activity_color} {'Potent' if class_prob > 0.5 else 'Not Potent'}</h4>
-                            <p style="margin: 0.5rem 0;"><strong>Confidence:</strong> {class_prob:.1%}</p>
-                            <p style="margin: 0.5rem 0;"><strong>IC50:</strong> {reg_value:.1f} nM</p>
+                        <div class="prediction-card">
+                            <div class="prediction-header">
+                                <span class="prediction-icon">📊</span>
+                                <span class="prediction-title">Graph NN Prediction</span>
+                            </div>
+                            <div class="prediction-content">
+                                <div class="metric-row">
+                                    <span class="metric-label">Activity</span>
+                                    <span class="status-badge status-{activity_status.lower().replace(' ', '-')}">{activity_status}</span>
+                                </div>
+                                <div class="metric-row">
+                                    <span class="metric-label">Confidence</span>
+                                    <span class="metric-value">{class_prob:.1%}</span>
+                                </div>
+                                <div class="metric-row">
+                                    <span class="metric-label">IC50</span>
+                                    <span class="metric-value">{reg_value:.1f} nM</span>
+                                </div>
+                            </div>
                         </div>
                         """, unsafe_allow_html=True)
                         
@@ -1020,16 +1004,29 @@ def sdf_file_prediction(file):
                             st.code(smiles, language="text")
                         
                         with col2:
-                            # Prominent prediction results
-                            activity_color = "🟢" if class_prob > 0.5 else "🔴"
-                            status_color = '#4CAF50' if class_prob > 0.5 else '#f44336'
+                            # iOS-style compact prediction card
+                            activity_status = 'Potent' if class_prob > 0.5 else 'Not Potent'
                             
                             st.markdown(f"""
-                            <div style="background: linear-gradient(135deg, {status_color}20, {status_color}10); 
-                                        padding: 1rem; border-radius: 10px; border-left: 4px solid {status_color};">
-                                <h4 style="color: {status_color}; margin: 0;">{activity_color} {'Potent' if class_prob > 0.5 else 'Not Potent'}</h4>
-                                <p style="margin: 0.5rem 0;"><strong>Confidence:</strong> {class_prob:.1%}</p>
-                                <p style="margin: 0.5rem 0;"><strong>IC50:</strong> {reg_value:.1f} nM</p>
+                            <div class="prediction-card">
+                                <div class="prediction-header">
+                                    <span class="prediction-icon">📊</span>
+                                    <span class="prediction-title">Graph NN Prediction</span>
+                                </div>
+                                <div class="prediction-content">
+                                    <div class="metric-row">
+                                        <span class="metric-label">Activity</span>
+                                        <span class="status-badge status-{activity_status.lower().replace(' ', '-')}">{activity_status}</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span class="metric-label">Confidence</span>
+                                        <span class="metric-value">{class_prob:.1%}</span>
+                                    </div>
+                                    <div class="metric-row">
+                                        <span class="metric-label">IC50</span>
+                                        <span class="metric-value">{reg_value:.1f} nM</span>
+                                    </div>
+                                </div>
                             </div>
                             """, unsafe_allow_html=True)
                             
@@ -1137,13 +1134,6 @@ if __name__ == '__main__':
     </style>
     """, unsafe_allow_html=True)
     
-    # Navigation Header
-    st.markdown("""
-    <div class="nav-container">
-        <div class="nav-title">Graph Neural Networks Prediction</div>
-    </div>
-    """, unsafe_allow_html=True)
-    
     # Load models at startup
     classification_model = load_classification_model()
     regression_model = load_regression_model()
@@ -1173,15 +1163,15 @@ if __name__ == '__main__':
         handle_drawing_input()
     
     with tab4:
-        uploaded_sdf_file = st.file_uploader("SDF File", type=['sdf'], key="tab_sdf_file_uploader")
-        if st.button('🔍 Predict', key="sdf_predict_btn"):
+        uploaded_sdf_file = st.file_uploader("SDF File", type=['sdf'], key="graph_tab_sdf_file_uploader")
+        if st.button('🔍 Predict', key="graph_sdf_predict_btn"):
             if uploaded_sdf_file is not None:
                 sdf_file_prediction(uploaded_sdf_file)
             else:
                 st.error("Please upload an SDF file first.")
     
     with tab5:
-        uploaded_excel_file = st.file_uploader("Excel File", type=['xlsx'], key="tab_excel_file_uploader")
+        uploaded_excel_file = st.file_uploader("Excel File", type=['xlsx'], key="graph_tab_excel_file_uploader")
         
         smiles_column = None
         # Show preview of uploaded file and column selector
@@ -1196,7 +1186,7 @@ if __name__ == '__main__':
                 smiles_column = st.selectbox(
                     "Choose SMILES Column:", 
                     options=column_options,
-                    key="excel_smiles_column_dropdown"
+                    key="graph_excel_smiles_column_dropdown"
                 )
                 if smiles_column == "Select SMILES column...":
                     smiles_column = None
@@ -1206,7 +1196,7 @@ if __name__ == '__main__':
         else:
             st.info("Upload an Excel file to see available columns")
         
-        if st.button('🔍 Predict', key="excel_predict_btn"):
+        if st.button('🔍 Predict', key="graph_excel_predict_btn"):
             if uploaded_excel_file is not None and smiles_column:
                 excel_file_prediction(uploaded_excel_file, smiles_column)
             else:

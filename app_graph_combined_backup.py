@@ -398,35 +398,6 @@ def handle_drawing_input():
             if error:
                 st.error(f"Prediction error: {error}")
             elif mol is not None:
-                # Metric cards
-                col1, col2, col3 = st.columns(3)
-                
-                with col1:
-                    activity_status = 'Potent' if class_prob > 0.5 else 'Not Potent'
-                    activity_color = '#4CAF50' if class_prob > 0.5 else '#f44336'
-                    st.markdown(f"""
-                    <div class="metric-card" style="background: {activity_color};">
-                        <div class="metric-value">{activity_status}</div>
-                        <div class="metric-label">Activity</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col2:
-                    st.markdown(f"""
-                    <div class="metric-card" style="background: #2196F3;">
-                        <div class="metric-value">{class_prob:.1%}</div>
-                        <div class="metric-label">Confidence</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col3:
-                    st.markdown(f"""
-                    <div class="metric-card" style="background: #9C27B0;">
-                        <div class="metric-value">{reg_value:.1f} nM</div>
-                        <div class="metric-label">IC50</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
                 # Results layout
                 col1, col2 = st.columns([1, 2])
                 
@@ -522,37 +493,6 @@ def handle_smiles_input():
         elif mol is not None:
             # Display results in beautiful cards
             st.markdown("## 📊 Prediction Results")
-            
-            # Create metric cards
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                activity_status = 'Potent' if class_prob > 0.5 else 'Not Potent'
-                activity_color = '#4CAF50' if class_prob > 0.5 else '#f44336'
-                st.markdown(f"""
-                <div class="metric-card" style="background: linear-gradient(135deg, {activity_color}, {activity_color}cc);">
-                    <div class="metric-value">{activity_status}</div>
-                    <div class="metric-label">Activity Prediction</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with col2:
-                st.markdown(f"""
-                <div class="metric-card" style="background: linear-gradient(135deg, #2196F3, #21CBF3);">
-                    <div class="metric-value">{class_prob:.1%}</div>
-                    <div class="metric-label">Confidence Score</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with col3:
-                st.markdown(f"""
-                <div class="metric-card" style="background: linear-gradient(135deg, #9C27B0, #E91E63);">
-                    <div class="metric-value">{reg_value:.1f} nM</div>
-                    <div class="metric-label">Predicted IC50</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            st.markdown("<br>", unsafe_allow_html=True)
             
             # Molecule structure and results section
             col1, col2 = st.columns([1, 2])
@@ -735,14 +675,6 @@ def handle_smiles_input():
 
 # Function to handle the home page
 def handle_home_page():
-    st.markdown("""
-    <div class="result-card">
-        <p style="text-align: center; font-size: 1.1rem; color: #666;">
-            Predict acetylcholinesterase inhibitory activity using Graph Neural Networks
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
     # Feature overview
     col1, col2 = st.columns(2)
     
@@ -995,13 +927,6 @@ if __name__ == '__main__':
         box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
     }
     </style>
-    """, unsafe_allow_html=True)
-    
-    # Navigation Header
-    st.markdown("""
-    <div class="nav-container">
-        <div class="nav-title">Graph Neural Networks Prediction</div>
-    </div>
     """, unsafe_allow_html=True)
     
     # Load models at startup

@@ -101,35 +101,6 @@ def handle_drawing_input():
                 mol, classification_prediction, classification_probability = single_input_prediction(smile_code)
             
             if mol is not None:
-                # Metric cards
-                col1, col2, col3 = st.columns(3)
-                
-                with col1:
-                    activity_status = 'Active' if classification_prediction == 1 else 'Inactive'
-                    activity_color = '#4CAF50' if classification_prediction == 1 else '#f44336'
-                    st.markdown(f"""
-                    <div class="metric-card" style="background: {activity_color};">
-                        <div class="metric-value">{activity_status}</div>
-                        <div class="metric-label">Activity</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col2:
-                    st.markdown(f"""
-                    <div class="metric-card" style="background: #2196F3;">
-                        <div class="metric-value">{classification_probability:.1%}</div>
-                        <div class="metric-label">Confidence</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col3:
-                    st.markdown(f"""
-                    <div class="metric-card" style="background: #9C27B0;">
-                        <div class="metric-value">ChemBERTa</div>
-                        <div class="metric-label">Model</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
                 # Results layout - emphasis on prediction results
                 col1, col2 = st.columns([1, 2])
                 
@@ -189,35 +160,6 @@ def handle_smiles_input():
             mol, classification_prediction, classification_probability = single_input_prediction(single_input)
             
         if mol is not None:
-            # Metric cards
-            col1, col2, col3 = st.columns(3)
-            
-            with col1:
-                activity_status = 'Active' if classification_prediction == 1 else 'Inactive'
-                activity_color = '#4CAF50' if classification_prediction == 1 else '#f44336'
-                st.markdown(f"""
-                <div class="metric-card" style="background: {activity_color};">
-                    <div class="metric-value">{activity_status}</div>
-                    <div class="metric-label">Activity</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with col2:
-                st.markdown(f"""
-                <div class="metric-card" style="background: #2196F3;">
-                    <div class="metric-value">{classification_probability:.1%}</div>
-                    <div class="metric-label">Confidence</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with col3:
-                st.markdown(f"""
-                <div class="metric-card" style="background: #9C27B0;">
-                    <div class="metric-value">ChemBERTa</div>
-                    <div class="metric-label">Model</div>
-                </div>
-                """, unsafe_allow_html=True)
-            
             # Results layout - emphasis on prediction results
             col1, col2 = st.columns([1, 2])
             
@@ -245,15 +187,6 @@ def handle_smiles_input():
 
 # Function to handle the home page
 def handle_home_page():
-    st.markdown("""
-    <div class="result-card">
-        <h1 style="text-align: center; color: #667eea;">🧪 ChemBERTa AChE Inhibitor Prediction</h1>
-        <p style="text-align: center; font-size: 1.1rem; color: #666;">
-            Predict acetylcholinesterase inhibitory activity using transformer models
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
     # Feature overview
     col1, col2 = st.columns(2)
     
@@ -483,12 +416,6 @@ if __name__ == '__main__':
     """, unsafe_allow_html=True)
     
     # Navigation Header
-    st.markdown("""
-    <div class="nav-container">
-        <div class="nav-title">🧪 ChemBERTa AChE Inhibitor Prediction</div>
-    </div>
-    """, unsafe_allow_html=True)
-    
     # Horizontal Navigation Tabs
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "🏠 Home", 

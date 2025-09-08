@@ -8,12 +8,10 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
-    software-properties-common \
     git \
     libxrender1 \
     libxtst6 \
     libxi6 \
-    libgconf-2-4 \
     libxss1 \
     libxrandr2 \
     libasound2 \
@@ -21,7 +19,7 @@ RUN apt-get update && apt-get install -y \
     libatk1.0-0 \
     libcairo-gobject2 \
     libgtk-3-0 \
-    libgdk-pixbuf2.0-0 \
+    libgdk-pixbuf-xlib-2.0-0 \
     libxcomposite1 \
     libxcursor1 \
     libxdamage1 \
