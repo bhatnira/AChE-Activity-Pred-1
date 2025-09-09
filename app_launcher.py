@@ -722,16 +722,12 @@ def render_home_page():
     <div class="hero-section">
         <div class="logo-container">
             <div class="main-logo">⚛️</div>
-            <h1 class="main-title">AChE Suite</h1>
+            <h1 class="main-title">AChE Inhibitor Discovery</h1>
         </div>
         <div class="subtitle-container">
             <div class="main-subtitle">
-                <span class="ai-badge">AI-Powered</span>
-                <span class="subtitle-text">Molecular Intelligence</span>
-            </div>
-            <div class="tagline">
-                <span>Precision Drug Discovery Platform</span>
-                <span class="tagline-icon">🚀</span>
+                <span class="ai-badge">Activity and Potency Prediction</span>
+                <span class="subtitle-text">Explainable AI</span>
             </div>
         </div>
         <div class="gradient-line"></div>
@@ -847,16 +843,12 @@ def render_header_card():
     <div class="hero-section">
         <div class="logo-container">
             <div class="main-logo">⚛️</div>
-            <h1 class="main-title">AChE Suite</h1>
+            <h1 class="main-title">AChE Inhibitor Discovery</h1>
         </div>
         <div class="subtitle-container">
             <div class="main-subtitle">
-                <span class="ai-badge">AI-Powered</span>
-                <span class="subtitle-text">Molecular Intelligence</span>
-            </div>
-            <div class="tagline">
-                <span>Precision Drug Discovery Platform</span>
-                <span class="tagline-icon">🚀</span>
+                <span class="ai-badge">Activity and Potency Prediction</span>
+                <span class="subtitle-text">Explainable AI</span>
             </div>
         </div>
         <div class="gradient-line"></div>
