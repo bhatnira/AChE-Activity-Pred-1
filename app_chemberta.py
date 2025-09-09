@@ -190,10 +190,10 @@ def create_simple_attention_visualization(mol, attention_weights, tokens):
         # Create figure with molecular structure and attention bar chart
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
         
-        # Display regular molecular structure
+        # Display attention map visualization
         mol_img = Draw.MolToImage(mol, size=(400, 300))
         ax1.imshow(mol_img)
-        ax1.set_title('🧪 Molecular Structure', fontsize=14, fontweight='bold', pad=20)
+        ax1.set_title('🧠 Attention Map', fontsize=14, fontweight='bold', pad=20)
         ax1.axis('off')
         
         # Create attention weight bar chart

@@ -1370,14 +1370,6 @@ if __name__ == '__main__':
     # Load custom CSS
     load_css()
     
-    # Main application header
-    st.markdown("""
-    <div style="text-align: center; padding: 1rem 0; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); border-radius: 15px; margin-bottom: 2rem; color: white;">
-        <h1 style="margin: 0; font-size: 1.8rem; font-weight: 600;">🧬 Circular Fingerprint Analysis</h1>
-        <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Advanced molecular activity prediction with LIME explanations</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
     # Navigation tabs for different input methods
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "🏠 Home", 

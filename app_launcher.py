@@ -692,11 +692,6 @@ if 'current_app' not in st.session_state:
 
 # App configurations
 apps_config = {
-    'home': {
-        'title': 'Home',
-        'description': 'Home',
-        'file': None
-    },
     'chemberta': {
         'title': 'ChemBERTa Transformer Prediction',
         'description': 'ChemBERTa AutoML',
@@ -845,8 +840,34 @@ def load_and_run_app(app_file):
     else:
         st.error(f"App file not found: {app_file}")
 
+def render_header_card():
+    """Render the header card at the top of the page"""
+    # Hero section
+    st.markdown("""
+    <div class="hero-section">
+        <div class="logo-container">
+            <div class="main-logo">⚛️</div>
+            <h1 class="main-title">AChE Suite</h1>
+        </div>
+        <div class="subtitle-container">
+            <div class="main-subtitle">
+                <span class="ai-badge">AI-Powered</span>
+                <span class="subtitle-text">Molecular Intelligence</span>
+            </div>
+            <div class="tagline">
+                <span>Precision Drug Discovery Platform</span>
+                <span class="tagline-icon">🚀</span>
+            </div>
+        </div>
+        <div class="gradient-line"></div>
+    </div>
+    """, unsafe_allow_html=True)
+
 def main():
     """Main application with iOS-style tabbed navigation"""
+    
+    # Display header card at the top
+    render_header_card()
     
     # Create tabs for navigation
     tab_names = list(apps_config.keys())
@@ -858,12 +879,9 @@ def main():
     # Handle tab content
     for i, (tab_key, tab_config) in enumerate(apps_config.items()):
         with tabs[i]:
-            if tab_key == 'home':
-                render_home_page()
-            else:
-                # Load the specific app
-                if tab_config['file']:
-                    load_and_run_app(tab_config['file'])
+            # Load the specific app
+            if tab_config['file']:
+                load_and_run_app(tab_config['file'])
 
 if __name__ == "__main__":
     main()

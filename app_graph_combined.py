@@ -1134,8 +1134,6 @@ if __name__ == '__main__':
     if classification_model is None or regression_model is None:
         st.error("Failed to load one or both models. Please check model files.")
         st.stop()
-    else:
-        st.success("✅ Both classification and regression models loaded successfully!")
     
     # Horizontal Navigation Tabs
     tab1, tab2, tab3, tab4, tab5 = st.tabs([

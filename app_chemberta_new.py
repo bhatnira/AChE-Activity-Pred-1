@@ -105,7 +105,7 @@ def handle_drawing_input():
                 col1, col2 = st.columns([1, 2])
                 
                 with col1:
-                    st.markdown("**🧪 Structure**")
+                    st.markdown("**� Attention Map**")
                     mol_img = Draw.MolToImage(mol, size=(180, 150), kekulize=True, wedgeBonds=True)
                     st.image(mol_img, use_column_width=True)
                     st.code(smile_code, language="text")
@@ -164,7 +164,7 @@ def handle_smiles_input():
             col1, col2 = st.columns([1, 2])
             
             with col1:
-                st.markdown("**🧪 Structure**")
+                st.markdown("**� Attention Map**")
                 mol_img = Draw.MolToImage(mol, size=(180, 150), kekulize=True, wedgeBonds=True)
                 st.image(mol_img, use_column_width=True)
                 st.code(single_input, language="text")
