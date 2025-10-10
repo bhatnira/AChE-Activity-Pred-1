@@ -1,0 +1,28 @@
+# Test Dockerfile for local Render simulation
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install minimal system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy just the essential files for testing
+COPY app_launcher.py requirements.txt ./
+COPY style.css ./
+
+# Install minimal dependencies for testing
+RUN pip install streamlit pandas numpy matplotlib
+
+# Set Render-like environment
+ENV RENDER=true
+ENV STREAMLIT_SERVER_HEADLESS=true
+ENV PYTHONUNBUFFERED=1
+
+# Use dynamic port from environment
+CMD streamlit run app_launcher.py \
+    --server.port=$PORT \
+    --server.address=0.0.0.0 \
+    --server.headless=true \
+    --browser.gatherUsageStats=false

@@ -15,6 +15,25 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# Add cache clearing utility
+def clear_all_cache():
+    """Clear all Streamlit cache and session state"""
+    try:
+        st.cache_data.clear()
+        st.cache_resource.clear()
+        # Clear specific session state keys that might cause issues
+        cache_keys_to_clear = [
+            '_current_model', '_current_X_train', '_current_featurizer',
+            'current_app', 'chemberta_model', 'rdkit_model', 'graph_model'
+        ]
+        for key in cache_keys_to_clear:
+            if key in st.session_state:
+                del st.session_state[key]
+        st.success("✅ Cache cleared successfully!")
+        st.rerun()
+    except Exception as e:
+        st.error(f"❌ Error clearing cache: {e}")
+
 # Deployment configuration
 if 'RENDER' in os.environ:
     # Running on Render.com - removed deprecated options
@@ -764,6 +783,19 @@ def render_home_page():
     with col4:
         if st.button("🕸️ Graph NN", key="home_graph", help="Graph neural network molecular modeling"):
             st.session_state.current_app = 'graph'
+            st.rerun()
+    
+    # Cache clearing utility
+    st.markdown("---")
+    st.markdown("### 🔧 Utilities")
+    col_util1, col_util2, col_util3 = st.columns([1, 1, 2])
+    
+    with col_util1:
+        if st.button("🧹 Clear Cache", key="clear_cache", help="Clear all cached data and refresh models"):
+            clear_all_cache()
+    
+    with col_util2:
+        if st.button("🔄 Refresh", key="refresh_app", help="Refresh the current application"):
             st.rerun()
     
     # Footer

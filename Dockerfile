@@ -70,4 +70,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl --fail http://localhost:${PORT:-8501}/_stcore/health || curl --fail http://localhost:8501/_stcore/health
 
 # Use the startup script if available, otherwise direct command
-CMD ["sh", "-c", "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 & export DISPLAY=:99 && streamlit run app_launcher.py --server.port=10000 --server.address=0.0.0.0 --server.headless=true --server.enableCORS=true --server.enableXsrfProtection=false --browser.gatherUsageStats=false"]
+CMD ["sh", "-c", "Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 & export DISPLAY=:99 && streamlit run app_launcher.py --server.port=${PORT:-10000} --server.address=0.0.0.0 --server.headless=true --server.enableCORS=true --server.enableXsrfProtection=false --browser.gatherUsageStats=false"]

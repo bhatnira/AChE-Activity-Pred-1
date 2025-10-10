@@ -3,10 +3,6 @@ services:
     build: .
     ports:
       - "10000:10000"  # Main launcher app
-      - "8501:8501"    # Graph Neural Network app
-      - "8502:8502"    # RDKit descriptor app
-      - "8503:8503"    # ChemBERTa app
-      - "8504:8504"    # Circular fingerprint app
     volumes:
       - ./data:/app/data
       - ./models:/app/models
