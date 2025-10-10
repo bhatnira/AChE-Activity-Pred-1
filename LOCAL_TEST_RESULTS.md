@@ -30,11 +30,43 @@ Your AChE Prediction Suite has been successfully tested locally using Docker wit
    - All navigation tabs functional
    - Render environment detection working
 
-### 🔧 **Configuration Verified:**
-- ✅ Dynamic PORT configuration working (uses ${PORT:-10000})
-- ✅ Render environment detection active
-- ✅ Headless mode configuration correct
-- ✅ All dependencies installing properly
+### ✅ **Cache Issue Resolution Complete:**
+
+**Enhanced Cache Clearing Implemented:**
+- ✅ **Comprehensive session state clearing** - All known cache keys removed
+- ✅ **Dynamic prefix-based clearing** - Clears keys starting with common prefixes
+- ✅ **Garbage collection** - Forces memory cleanup after cache clearing
+- ✅ **User guidance** - Instructions for browser cache clearing included
+- ✅ **Error handling** - Graceful fallback if cache clearing fails
+
+**Cache Clearing Features:**
+1. **Streamlit Built-in Caches:**
+   - `st.cache_data.clear()` - Data caching cleared
+   - `st.cache_resource.clear()` - Resource caching cleared
+
+2. **Session State Management:**
+   - Model-specific keys: `_current_model`, `chemberta_model`, `rdkit_model`, etc.
+   - Data keys: `uploaded_file`, `processed_data`, `features`, `results`
+   - UI state keys: `selected_tab`, `navigation_state`, `button_state`
+
+3. **Smart Prefix Clearing:**
+   - Clears keys starting with: `_`, `temp_`, `cache_`, `model_`, `data_`, `result_`
+
+4. **User Interface:**
+   - 🧹 **Clear Cache** button with comprehensive clearing
+   - 🔄 **Refresh** button for page reload
+   - 📖 **Cache Troubleshooting Guide** with browser instructions
+
+### 🧪 **Cache Testing Results:**
+
+**Container Test**: ✅ **PASSED**
+```bash
+docker run -p 8505:10000 -e RENDER=true -e PORT=10000 ache-pred-cache-test
+```
+- **Container Status**: Running successfully on port 8505
+- **Application Access**: ✅ Confirmed accessible at http://localhost:8505
+- **Cache UI**: ✅ Enhanced utilities section visible
+- **Cache Buttons**: ✅ Clear Cache and Refresh buttons functional
 
 ### 📦 **Production Files Ready:**
 - **`render.yaml`** - Service configuration optimized

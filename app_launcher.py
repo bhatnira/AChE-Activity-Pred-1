@@ -15,24 +15,53 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Add cache clearing utility
+# Add comprehensive cache clearing utility
 def clear_all_cache():
-    """Clear all Streamlit cache and session state"""
+    """Clear all Streamlit cache and session state comprehensively"""
     try:
+        # Clear Streamlit's built-in caches
         st.cache_data.clear()
         st.cache_resource.clear()
-        # Clear specific session state keys that might cause issues
+        
+        # Clear all session state keys
+        all_keys = list(st.session_state.keys())
         cache_keys_to_clear = [
+            # Model-specific cache keys
             '_current_model', '_current_X_train', '_current_featurizer',
-            'current_app', 'chemberta_model', 'rdkit_model', 'graph_model'
+            'current_app', 'chemberta_model', 'rdkit_model', 'graph_model',
+            'circular_model', 'pipeline', 'model_loaded', 'predictions',
+            # Data cache keys
+            'uploaded_file', 'processed_data', 'features', 'results',
+            'training_data', 'test_data', 'validation_data',
+            # UI state cache keys
+            'selected_tab', 'current_page', 'navigation_state',
+            'file_uploader_key', 'form_key', 'button_state'
         ]
+        
+        # Clear specific known cache keys
         for key in cache_keys_to_clear:
             if key in st.session_state:
                 del st.session_state[key]
+        
+        # Clear any keys starting with common prefixes
+        prefixes_to_clear = ['_', 'temp_', 'cache_', 'model_', 'data_', 'result_']
+        for key in all_keys:
+            for prefix in prefixes_to_clear:
+                if key.startswith(prefix):
+                    if key in st.session_state:
+                        del st.session_state[key]
+                    break
+        
+        # Force garbage collection
+        import gc
+        gc.collect()
+        
         st.success("✅ Cache cleared successfully!")
+        st.info("💡 If issues persist, try refreshing your browser (Ctrl+F5 / Cmd+Shift+R)")
         st.rerun()
     except Exception as e:
         st.error(f"❌ Error clearing cache: {e}")
+        st.info("🔄 Try refreshing the page manually if cache issues persist")
 
 # Deployment configuration
 if 'RENDER' in os.environ:
@@ -797,6 +826,12 @@ def render_home_page():
     with col_util2:
         if st.button("🔄 Refresh", key="refresh_app", help="Refresh the current application"):
             st.rerun()
+    
+    with col_util3:
+        st.markdown("**🛠️ Cache Troubleshooting:**")
+        st.markdown("• Use 🧹 **Clear Cache** for app issues")
+        st.markdown("• Use 🔄 **Refresh** to reload the page")
+        st.markdown("• **Browser**: Ctrl+F5 (PC) / Cmd+Shift+R (Mac)")
     
     # Footer
     st.markdown("""
